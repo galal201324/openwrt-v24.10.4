@@ -18,13 +18,13 @@
 
 	aliases {
 		serial0 = &blsp1_uart3;
-		label-mac-device = &dp2;
+		label-mac-device = &dp3;
 		led-boot = &led_wan_blue;
 		led-failsafe = &led_wan_blue;
 		led-running = &led_wan_blue;
 		led-upgrade = &led_wan_blue;
 		ethernet0 = &dp1;
-		ethernet1 = &dp2;
+		ethernet1 = &dp3;
 	};
 
 	chosen {
@@ -146,9 +146,9 @@
 		};
   };
 
-		qca8075_1: ethernet-phy@1 {
+		qca8075_2: ethernet-phy@2 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <1>;
+			reg = <2>;
 
 			leds {
 				#address-cells = <1>;
@@ -171,10 +171,10 @@
 	phy-handle = <&qca8075_0>;
 };
 
-&dp2 {
+&dp3 {
 	status = "okay";
 	label = "lan";
-	phy-handle = <&qca8075_1>;
+	phy-handle = <&qca8075_2>;
 };
 
 &edma {
@@ -183,7 +183,7 @@
 
 &switch {
 	status = "okay";
-	switch_lan_bmp = <ESS_PORT2>;
+	switch_lan_bmp = <ESS_PORT3>;
 	switch_wan_bmp = <ESS_PORT1>;
 	switch_mac_mode = <MAC_MODE_PSGMII>;
 
@@ -192,21 +192,9 @@
 			port_id = <1>;
 			phy_address = <0>;
 		};
-		port@2 {
-			port_id = <2>;
-			phy_address = <1>;
-		};
 		port@3 {
 			port_id = <3>;
 			phy_address = <2>;
-		};
-		port@4 {
-			port_id = <4>;
-			phy_address = <3>;
-		};
-		port@5 {
-			port_id = <5>;
-			phy_address = <4>;
 		};
 	};
 };
