@@ -14,10 +14,9 @@ alfa-network,ax1800rm)
 	ucidef_set_led_netdev "wan" "wan" "green:wan" "wan"
 	;;
 kt,km14-102h)
-	ucidef_set_led_netdev "lan" "LAN" "green:lan" "lan" "link tx rx"
-	ucidef_set_led_netdev "wan" "WAN" "green:wan" "wan" "link tx rx"
-	ucidef_set_led_netdev "wlan" "WiFi 2.4GHz" "green:wlan" "phy0-ap0" "link tx rx"
-  ucidef_set_led_netdev "wlan" "WiFi 5GHz" "mt76-phy0" "phy1-ap0" "link tx rx"
+	ucidef_set_led_netdev "lan" "LAN" "green:lan" "lan" "link"
+	ucidef_set_led_netdev "wan" "WAN" "green:wan" "wan" "link"
+	ucidef_set_led_netdev "wlan" "WiFi" "green:wlan" "phy0-ap0" "link"
 	;;
 asus,rp-ac87)
 	ucidef_set_rssimon "wlan0" "200000" "1"

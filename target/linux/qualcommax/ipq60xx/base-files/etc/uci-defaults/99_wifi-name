@@ -1,0 +1,66 @@
+#!/bin/sh
+#kt-km15-103h
+#kt-km12-007h
+#ax7500turb2s
+#DV02-012H
+#AR06-012H
+#AR07-102H
+#LG-GAPD-7500
+#uci set wireless.@wifi-iface[1].ssid=KT-KM12-007H-5G_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[1].ssid=KT-KM15-103H-5G_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[1].ssid=DV02-012H-2.4_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[1].ssid=AR06-012H-2.4_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-iface[1].ssid=AR07-102H-2.4_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[1].ssid=LG-GAPD-7500-2.4_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-device[1].disabled='0'
+uci set wireless.radio1.channel='auto'
+uci set wireless.default_radio0.wds='1'
+uci set wireless.radio1.htmode='HE20'
+uci set wireless.radio1.cell_density='0'
+#uci set wireless.@wifi-iface[0].ssid=KT-KM12-007H-2.4_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[0].ssid=KT-KM15-103H-2.4_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[0].ssid=DV02-012H-5G_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[0].ssid=AR06-012H-5G_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-iface[0].ssid=AR07-102H-5G_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[0].ssid=LG-GAPD-7500-5G_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-device[0].disabled='0'
+uci set wireless.radio0.channel='36'
+uci set wireless.default_radio1.wds='1'
+uci set wireless.radio0.htmode='HE80'
+uci set wireless.radio0.cell_density='0'
+#uci set system.@system[0].hostname=KT-KM12-007H
+#uci set system.@system[0].hostname=KT-KM15-103H
+#uci set system.@system[0].hostname=DV02-012H
+#uci set system.@system[0].hostname=AL-emprator-AR-06-012H
+uci set system.@system[0].hostname=AR07-102H
+#uci set system.@system[0].hostname=LG-GAPD-7500
+uci commit system
+uci commit wireless
+##########################
+uci set ttyd.cfg01a8ea.debug='7'
+uci set ttyd.cfg01a8ea.command='/usr/libexec/login.sh'
+uci commit 
+sync
+##########################
+uci del system.ntp.enabled
+uci del system.ntp.enable_server
+uci set system.cfg01e48a.description='AL-emprator Router - مجموعة الامبراطور للبرمجيات'
+uci set system.cfg01e48a.notes='فريق الدعم الفني:
+المهندس محمد باعلوي
+777440819
+المهندس جلال القحم
+774070632
+https://facebook.com/baalwiy
++967777440819
+https://youtube.com/c/MOHAMMEDABAALAWI
+http://t.me/baalwy2009
+https://facebook.com/baalwiy
+https://api.whatsapp.com/send/?phone=967777440819'
+uci set system.cfg01e48a.zonename='Asia/Aden'
+uci set system.cfg01e48a.timezone='<+03>-3'
+uci set system.cfg01e48a.log_proto='udp'
+uci set system.cfg01e48a.conloglevel='8'
+uci set system.cfg01e48a.cronloglevel='5'
+uci del watchcat.cfg01e014
+uci commit 
+exit 0

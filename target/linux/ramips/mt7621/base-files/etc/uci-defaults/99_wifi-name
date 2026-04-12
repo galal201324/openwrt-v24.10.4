@@ -1,0 +1,29 @@
+#!/bin/sh
+#kt-km15-103h
+#kt-km14-102h
+#kt-km12-007h
+#ax7500turb2s
+#lg-gapm-7500e
+#uci set wireless.@wifi-iface[1].ssid=KT-KM12-007H-5G_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[1].ssid=KT-KM15-103H-5G_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-iface[1].ssid=KT-KM14-102H-5GHz_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[1].ssid=LG-7500e-5G_$(cat /sys/class/ieee80211/phy1/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-device[1].disabled='0'
+uci set wireless.radio0.channel='auto'
+uci set wireless.default_radio0.wds='1'
+uci set wireless.radio1.htmode='HE80'
+#uci set wireless.@wifi-iface[0].ssid=KT-KM12-007H-2.4_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[0].ssid=KT-KM15-103H-2.4_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-iface[0].ssid=KT-KM14-102H-2.4GHz_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+#uci set wireless.@wifi-iface[0].ssid=LG-7500e-2.4_$(cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)
+uci set wireless.@wifi-device[0].disabled='0'
+uci set wireless.radio1.channel='auto'
+uci set wireless.default_radio1.wds='1'
+uci set wireless.radio0.htmode='HE20'
+#uci set system.@system[0].hostname=KT-KM12-007H
+#uci set system.@system[0].hostname=KT-KM15-103H
+uci set system.@system[0].hostname=KT-KM14-102H
+#uci set system.@system[0].hostname=LG-7500E
+uci commit system
+uci commit wireless
+exit 0

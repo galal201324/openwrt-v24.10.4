@@ -20,6 +20,16 @@ ipq60xx_setup_interfaces()
 	netgear,wax214)
 		ucidef_set_interfaces_lan_wan "lan"
 		;;
+	kt,ar06-012h|\
+	kt,dv02-012h)
+		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" "wan"
+    ;;
+	kt,ar07-102h)
+		ucidef_set_interfaces_lan_wan "lan" "wan"
+    ;;
+	lg,gapd-7500)
+    ucidef_set_interfaces_lan_wan "lan2 lan3 lan4" "wan"
+		;;
 	yuncore,fap650)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" "wan"
 		;;

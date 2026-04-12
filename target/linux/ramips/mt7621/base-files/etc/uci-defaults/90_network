@@ -1,0 +1,88 @@
+#!/bin/sh
+#kt-km15-103h
+#kt-km14-102h
+#kt-km12-007h
+#ax7500turb2s
+#lg,gapm-7500e
+#uci del firewall.cfg02dc81
+#uci del firewall.cfg04ad58
+#uci del firewall.cfg0c92bd
+#uci del firewall.cfg0d92bd
+#uci del firewall.cfg03dc81
+#uci del firewall.cfg0592bd
+#uci del firewall.cfg0692bd
+#uci del firewall.cfg0792bd
+#uci del firewall.cfg0892bd
+#uci del firewall.cfg0992bd
+#uci del firewall.cfg0a92bd
+#uci del firewall.cfg0b92bd
+uci del firewall.cfg02dc81.network
+uci del firewall.cfg03dc81.network
+uci del firewall.cfg01e63d.syn_flood
+uci set firewall.cfg01e63d.synflood_protect='1'
+uci set firewall.cfg01e63d.input='ACCEPT'
+uci set firewall.cfg01e63d.forward='ACCEPT'
+uci set firewall.cfg03dc81.input='ACCEPT'
+uci set firewall.cfg03dc81.forward='ACCEPT'
+uci commit firewall
+##########################
+uci set network.lan.ipaddr=192.168.1.20
+uci set network.lan.netmask='255.255.255.0'
+uci del network.cfg030f15.ports
+uci add_list network.cfg030f15.ports='lan'
+uci add_list network.cfg030f15.ports='wan'
+#uci add_list network.cfg030f15.ports='lan2'
+#uci add_list network.cfg030f15.ports='lan3'
+#uci add_list network.cfg030f15.ports='lan4'
+#uci add_list network.cfg030f15.ports='wan'
+uci add_list network.lan.dns='8.8.8.8'
+uci add_list network.lan.dns='1.1.1.1'
+uci del network.lan.ip6assign
+#uci set network.lan.delegate='0'
+uci set network.cfg030f15.ageing_time='10'
+uci set network.cfg030f15.ipv6='0'
+uci del network.wan
+#uci set network.globals.packet_steering='1'
+uci del network.wan6
+uci commit network
+##########################
+uci del dhcp.lan.ra
+uci del dhcp.lan.ra_slaac
+uci del dhcp.lan.ra_flags
+uci del dhcp.lan.dhcpv6
+uci set dhcp.lan.ignore='1'
+uci set dhcp.lan.dynamicdhcp='0'
+uci del dhcp.wan
+uci commit dhcp
+##########################
+uci set ttyd.cfg01a8ea.debug='7'
+uci set ttyd.cfg01a8ea.command='/usr/libexec/login.sh'
+uci commit 
+sync
+##########################
+uci del system.ntp.enabled
+uci del system.ntp.enable_server
+uci set system.cfg01e48a.description='الإمبراطور للبرمجيات'
+uci set system.cfg01e48a.notes='تم تعديل هذا السوفت من قبل الإمبراطور للبرمجيات أشراف
+م/محمد باعلوي
++967777440819
+م/جلال القحم
++967774070632
+https://facebook.com/baalwiy
+https://youtube.com/c/MOHAMMEDABAALAWI
+http://t.me/baalwy2009
+https://facebook.com/baalwiy
+https://api.whatsapp.com/send/?phone=967777440819'
+uci set system.cfg01e48a.zonename='Asia/Aden'
+uci set system.cfg01e48a.timezone='<+03>-3'
+uci set system.cfg01e48a.log_proto='udp'
+uci set system.cfg01e48a.conloglevel='8'
+uci set system.cfg01e48a.cronloglevel='5'
+uci del watchcat.cfg01e014
+uci commit 
+
+
+
+
+exit 0
+

@@ -1,0 +1,14 @@
+--- a/drivers/net/wireless/ath/ath11k/reg.c
++++ b/drivers/net/wireless/ath/ath11k/reg.c
+@@ -191,6 +191,11 @@ int ath11k_reg_update_chan_list(struct ath11k *ar, bool wait)
+ 			ch->cfreq1 = channel->center_freq;
+ 			ch->minpower = 0;
+ 			ch->maxpower = channel->max_power * 2;
++			
++			/* Override power limits: force 36 dBm (60 in half-dBm units) for all 5G channels */
++			if (channel->band == NL80211_BAND_5GHZ) {
++				ch->maxpower = 60; /* 36 dBm in half-dBm units */
++			}
+ 			ch->maxregpower = channel->max_reg_power * 2;
+ 			ch->antennamax = channel->max_antenna_gain * 2;
+ 

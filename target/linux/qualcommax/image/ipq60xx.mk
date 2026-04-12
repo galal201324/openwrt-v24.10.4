@@ -24,6 +24,64 @@ define Device/cambiumnetworks_xe3-4
 endef
 TARGET_DEVICES += cambiumnetworks_xe3-4
 
+define Device/kt_dv02-012h
+  $(call Device/FitImage)
+  $(call Device/UbiFit)
+  DEVICE_VENDOR := KT
+  DEVICE_MODEL := DV02-012H
+  DEVICE_DTS := ipq6000-kt-dv02-012h
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  DEVICE_DTS_CONFIG := config@cp03-c1
+  SOC := ipq6000
+  DEVICE_PACKAGES := ipq-wifi-kt_dv02-012h kmod-usb3 kmod-usb-dwc3 \
+		kmod-usb-dwc3-qcom kmod-usb-storage kmod-ath11k-ahb kmod-gpio-button-hotplug
+endef
+TARGET_DEVICES += kt_dv02-012h
+
+define Device/kt_ar06-012h
+  $(call Device/FitImage)
+  $(call Device/UbiFit)
+  DEVICE_VENDOR := KT
+  DEVICE_MODEL := AR06-012H
+  DEVICE_DTS := ipq6000-kt-ar06-012h
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  DEVICE_DTS_CONFIG := config@cp03-c1
+  SOC := ipq6000
+  DEVICE_PACKAGES := ipq-wifi-kt_ar06-012h kmod-usb3 kmod-usb-dwc3 \
+		kmod-usb-dwc3-qcom kmod-usb-storage kmod-ath11k-ahb kmod-gpio-button-hotplug
+endef
+TARGET_DEVICES += kt_ar06-012h
+
+define Device/kt_ar07-102h
+  $(call Device/FitImage)
+  $(call Device/UbiFit)
+  DEVICE_VENDOR := KT
+  DEVICE_MODEL := AR07-102H
+  DEVICE_DTS := ipq6000-kt-ar07-102h
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  DEVICE_DTS_CONFIG := config@cp03-c1
+  SOC := ipq6000
+  DEVICE_PACKAGES := ipq-wifi-kt_ar07-102h kmod-ath11k-ahb kmod-gpio-button-hotplug
+endef
+TARGET_DEVICES += kt_ar07-102h
+
+define Device/lg_gapd-7500
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := LG
+	DEVICE_MODEL := GAPD-7500
+  DEVICE_DTS := ipq6000-lg-gapd-7500
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := ipq6000
+	DEVICE_DTS_CONFIG := config@cp03-c1
+	DEVICE_PACKAGES := ipq-wifi-lg_gapd-7500 kmod-usb3 kmod-usb-dwc3 kmod-usb-dwc3-qcom kmod-usb-storage kmod-i2c-gpio kmod-ath11k-ahb kmod-phy-realtek kmod-dsa-rtl8365mb kmod-gpio-button-hotplug kmod-leds-gpio 
+endef
+TARGET_DEVICES += lg_gapd-7500
+
 define Device/netgear_wax214
        $(call Device/FitImage)
        $(call Device/UbiFit)

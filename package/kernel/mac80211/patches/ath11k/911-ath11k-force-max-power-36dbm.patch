@@ -1,0 +1,13 @@
+--- a/drivers/net/wireless/ath/ath11k/reg.c
++++ b/drivers/net/wireless/ath/ath11k/reg.c
+@@ -617,6 +617,10 @@ ath11k_reg_build_regd(struct ath11k_base *ab,
+ 		flags |= ath11k_map_fw_reg_flags(reg_rule->flags);
+ 		flags |= ath11k_map_fw_phy_flags(reg_info->phybitmap);
+ 
++		/* Force all channels to use maximum power (36 dBm) */
++		if (reg_rule->reg_power < 36)
++			reg_rule->reg_power = 36;
++
+ 		ath11k_reg_update_rule(new_regd->reg_rules + i,
+ 				       reg_rule->start_freq,
+ 				       reg_rule->end_freq, max_bw,

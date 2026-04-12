@@ -1,0 +1,77 @@
+diff --git a/db.txt b/db.txt
+index 75dc0a3..9c888a9 100644
+--- a/db.txt
++++ b/db.txt
+@@ -11,23 +11,7 @@
+ # This is the world regulatory domain
+-country 00:
+-	# There is no global intersection for 802.11ah, so just mark the entire
+-	# possible band as NO-IR
+-	(755 - 928 @ 2), (20), NO-IR
+-	(2402 - 2472 @ 40), (20)
+-	# Channel 12 - 13.
+-	(2457 - 2482 @ 20), (20), NO-IR, AUTO-BW
+-	# Channel 14. Only JP enables this and for 802.11b only
+-	(2474 - 2494 @ 20), (20), NO-IR, NO-OFDM
+-	# Channel 36 - 48
+-	(5170 - 5250 @ 80), (20), AUTO-BW
+-	# Channel 52 - 64
+-	(5250 - 5330 @ 80), (20), NO-IR, DFS, AUTO-BW
+-	# Channel 100 - 144
+-	(5490 - 5730 @ 160), (20), NO-IR, DFS
+-	# Channel 149 - 165
+-	(5735 - 5835 @ 80), (20), NO-IR
+-	# IEEE 802.11ad (60GHz), channels 1..3
+-	(57240 - 63720 @ 2160), (0)
++country 00: DFS-UNSET
++	(2400 - 2483 @ 40), (36)
++	(4910 - 6110 @ 160), (36)
+ 
+ # AD as part of CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
+ # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
+@@ -1732,29 +1733,5 @@
+ # set out in 47 CFR § 15.205. TODO: reenable and specify a safe TX power here.
+-country US: DFS-FCC
+-	# S1G Channel 1-3
+-	(902 - 904 @ 2), (30)
+-	# S1G Channel 5-35
+-	(904 - 920 @ 16), (30)
+-	# S1G Channel 37-51
+-	(920 - 928 @ 8), (30)
+-	(2400 - 2472 @ 40), (30)
+-	# 5.15 ~ 5.25 GHz: 30 dBm for master mode, 23 dBm for clients
+-	(5150 - 5250 @ 80), (23), AUTO-BW
+-	(5250 - 5350 @ 80), (24), DFS, AUTO-BW
+-	# This range ends at 5725 MHz, but channel 144 extends to 5730 MHz.
+-	# Since 5725 ~ 5730 MHz belongs to the next range which has looser
+-	# requirements, we can extend the range by 5 MHz to make the kernel
+-	# happy and be able to use channel 144.
+-	(5470 - 5730 @ 160), (24), DFS
+-	(5730 - 5850 @ 80), (30), AUTO-BW
+-	# https://www.federalregister.gov/documents/2021/05/03/2021-08802/use-of-the-5850-5925-ghz-band
+-	# max. 33 dBm AP @ 20MHz, 36 dBm AP @ 40Mhz+, 6 dB less for clients
+-	(5850 - 5895 @ 40), (27), NO-OUTDOOR, AUTO-BW, NO-IR
+-	# 6g band
+-	# https://www.federalregister.gov/documents/2020/05/26/2020-11236/unlicensed-use-of-the-6ghz-band
+-	(5925 - 7125 @ 320), (12), NO-OUTDOOR, NO-IR
+-	# 60g band
+-	# reference: section IV-D https://docs.fcc.gov/public/attachments/FCC-16-89A1.pdf
+-	# channels 1-6 EIRP=40dBm(43dBm peak)
+-	(57240 - 71000 @ 2160), (40)
++country US: DFS-UNSET
++	(2400 - 2483 @ 40), (36)
++	(4910 - 6110 @ 160), (36)
+ 
+ country UY: DFS-FCC
+diff --git a/dbparse.py b/dbparse.py
+index b735b6a..d25fb3b 100755
+--- a/dbparse.py
++++ b/dbparse.py
+@@ -13,6 +13,7 @@ flag_definitions = {
+ }
+ 
+ dfs_regions = {
++    'DFS-UNSET':	0,
+     'DFS-FCC':		1,
+     'DFS-ETSI':	2,
+     'DFS-JP':		3,

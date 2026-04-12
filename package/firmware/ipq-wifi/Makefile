@@ -37,6 +37,12 @@ ALLWIFIBOARDS:= \
 	dynalink_dl-wrx36 \
 	edgecore_eap102 \
 	edimax_cax1800 \
+	kt_dv01-901h \
+	kt_dv02-012h \
+	kt_ar06-012h \
+	kt_ar07-102h \
+	lg_gapd-7500 \
+	lg_gapd-7200 \
 	linksys_homewrk \
 	linksys_mx4200 \
 	linksys_mx5300 \
@@ -77,7 +83,7 @@ define Package/ipq-wifi-default
   SUBMENU:=ath10k Board-Specific Overrides
   SECTION:=firmware
   CATEGORY:=Firmware
-  DEPENDS:=@(TARGET_ath79||TARGET_ipq40xx||TARGET_ipq806x||TARGET_qualcommax)
+  DEPENDS:=@(TARGET_ath79||TARGET_ipq40xx||TARGET_ipq806x||TARGET_qualcommax||TARGET_qualcommbe)
   TITLE:=Custom Board
 endef
 
@@ -171,6 +177,12 @@ $(eval $(call generate-ipq-wifi-package,compex_wpq873,Compex WPQ-873))
 $(eval $(call generate-ipq-wifi-package,dynalink_dl-wrx36,Dynalink DL-WRX36))
 $(eval $(call generate-ipq-wifi-package,edgecore_eap102,Edgecore EAP102))
 $(eval $(call generate-ipq-wifi-package,edimax_cax1800,Edimax CAX1800))
+$(eval $(call generate-ipq-wifi-package,kt_dv01-901h,KT DV01-901H))
+$(eval $(call generate-ipq-wifi-package,kt_dv02-012h,KT DV02-012H))
+$(eval $(call generate-ipq-wifi-package,kt_ar06-012h,KT AR06-012H))
+$(eval $(call generate-ipq-wifi-package,kt_ar07-102h,KT AR07-102H))
+$(eval $(call generate-ipq-wifi-package,lg_gapd-7500,LG GAPD-7500))
+$(eval $(call generate-ipq-wifi-package,lg_gapd-7200,LG GAPD-7200))
 $(eval $(call generate-ipq-wifi-package,linksys_homewrk,Linksys HomeWRK))
 $(eval $(call generate-ipq-wifi-package,linksys_mx4200,Linksys MX4200))
 $(eval $(call generate-ipq-wifi-package,linksys_mx5300,Linksys MX5300))

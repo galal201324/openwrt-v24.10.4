@@ -18,6 +18,12 @@ case "$FIRMWARE" in
 	netgear,wax214)
 		caldata_extract "0:art" 0x1000 0x10000
 		;;
+  lg,gapd-7500|\
+	kt,ar06-012h|\
+	kt,ar07-102h|\
+	kt,dv02-012h)
+		caldata_extract "0:art" 0x1000 0x10000
+		;;
 	yuncore,fap650)
 		caldata_extract "0:art" 0x1000 0x20000
 		;;

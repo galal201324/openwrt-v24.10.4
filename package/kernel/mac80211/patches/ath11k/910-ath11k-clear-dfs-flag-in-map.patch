@@ -1,0 +1,14 @@
+--- a/drivers/net/wireless/ath/ath11k/reg.c
++++ b/drivers/net/wireless/ath/ath11k/reg.c
+@@ -332,8 +332,9 @@ static u32 ath11k_map_fw_reg_flags(u16 
+ 	if (reg_flags & REGULATORY_CHAN_NO_IR)
+ 		flags = NL80211_RRF_NO_IR;
+ 
+-	if (reg_flags & REGULATORY_CHAN_RADAR)
+-		flags |= NL80211_RRF_DFS;
++	/* Force-disable DFS: ignore firmware DFS flag */
++	if (false && (reg_flags & REGULATORY_CHAN_RADAR))
++		flags |= NL80211_RRF_DFS;
+ 
+ 	if (reg_flags & REGULATORY_CHAN_NO_OFDM)
+ 		flags |= NL80211_RRF_NO_OFDM;

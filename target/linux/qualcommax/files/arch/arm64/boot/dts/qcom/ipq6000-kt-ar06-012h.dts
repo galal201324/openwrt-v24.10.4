@@ -1,0 +1,407 @@
+// SPDX-License-Identifier: (GPL-2.0+)
+/* Copyright (c) 2025, Mohammed baalawi <baalwy2009@gmail.com> */
+
+/dts-v1/;
+
+// #include "ipq6018.dtsi"
+#include "ipq6018-512m.dtsi"
+#include "ipq6018-cp-cpu.dtsi"
+#include "ipq6018-ess.dtsi"
+// #include "ipq6018-nss.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+/ {
+	model = "KT-AR06-012H";
+	compatible = "kt,ar06-012h", "qcom,ipq6018";
+
+	aliases {
+		serial0 = &blsp1_uart3;
+		label-mac-device = &dp5;
+		led-boot = &led_wan_blue;
+		led-failsafe = &led_wan_blue;
+		led-running = &led_wan_blue;
+		led-upgrade = &led_wan_blue;
+		ethernet0 = &dp1;
+		ethernet1 = &dp2;
+		ethernet2 = &dp3;
+		ethernet3 = &dp4;
+		ethernet4 = &dp5;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+		bootargs-append = " root=/dev/ubiblock0_1 swiotlb=1";
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "reset";
+			gpios = <&tlmm 9 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+
+		wps {
+			label = "wps";
+			gpios = <&tlmm 55 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_wan_blue: wan_blue {
+			label = "blue:wan";
+			gpios = <&tlmm 34 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		wan_green {
+			label = "green:wan";
+			gpios = <&tlmm 37 GPIO_ACTIVE_HIGH>;
+		};
+
+		wifi_green {
+			label = "green:wifi";
+			gpios = <&tlmm 35 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	reg_usb_vbus: regulator-usb-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "usb_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&tlmm 26 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-boot-on;
+		// regulator-always-on;
+	};
+
+	output-usb0-power {
+		compatible = "regulator-output";
+		vout-supply = <&reg_usb_vbus>;
+	};
+};
+
+&tlmm {
+	gpio-reserved-ranges = <20 1>;
+
+	mdio_pins: mdio-pins {
+		mdc {
+			pins = "gpio64";
+			function = "mdc";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		mdio {
+			pins = "gpio65";
+			function = "mdio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	i2c_1_pins: i2c-1-state {
+		pins = "gpio42", "gpio43";
+		function = "blsp2_i2c";
+		drive-strength = <8>;
+	};
+
+	spi_0_pins: spi-0-state {
+		pins = "gpio38", "gpio39", "gpio40", "gpio41";
+		function = "blsp0_spi";
+		drive-strength = <8>;
+		bias-pull-down;
+	};
+};
+
+&mdio {
+	status = "okay";
+	pinctrl-0 = <&mdio_pins>;
+	pinctrl-names = "default";
+	reset-gpios = <&tlmm 75 GPIO_ACTIVE_LOW>;
+
+	ethernet-phy-package@0 {
+		compatible = "qcom,qca8075-package";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0>;
+
+		qca8075_0: ethernet-phy@0 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <0>;
+			
+			leds {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				led@1 {
+					reg = <1>;
+					color = <LED_COLOR_ID_GREEN>;
+					function = LED_FUNCTION_LAN;
+					default-state = "keep";
+				};
+		};
+  };
+
+		qca8075_1: ethernet-phy@1 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <1>;
+
+			leds {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				led@1 {
+					reg = <1>;
+					color = <LED_COLOR_ID_GREEN>;
+					function = LED_FUNCTION_LAN;
+					default-state = "keep";
+				};
+			};
+		};
+
+		qca8075_2: ethernet-phy@2 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <2>;
+
+			leds {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				led@1 {
+					reg = <1>;
+					color = <LED_COLOR_ID_GREEN>;
+					function = LED_FUNCTION_LAN;
+					default-state = "keep";
+				};
+			};
+		};
+
+		qca8075_3: ethernet-phy@3 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <3>;
+
+			leds {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				led@1 {
+					reg = <1>;
+					color = <LED_COLOR_ID_GREEN>;
+					function = LED_FUNCTION_LAN;
+					default-state = "keep";
+				};
+			};
+		};
+
+		qca8075_4: ethernet-phy@4 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <4>;
+
+			leds {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				led@1 {
+					reg = <1>;
+					color = <LED_COLOR_ID_GREEN>;
+					function = LED_FUNCTION_LAN;
+					default-state = "keep";
+				};
+			};
+		};
+	};
+};
+
+&dp1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&qca8075_0>;
+};
+
+&dp2 {
+	status = "okay";
+	label = "lan4";
+	phy-handle = <&qca8075_1>;
+};
+
+&dp3 {
+	status = "okay";
+	label = "lan3";
+	phy-handle = <&qca8075_2>;
+};
+
+&dp4 {
+	status = "okay";
+	label = "lan2";
+	phy-handle = <&qca8075_3>;
+};
+
+&dp5 {
+	status = "okay";
+	label = "lan1";
+	phy-handle = <&qca8075_4>;
+};
+
+&edma {
+	status = "okay";
+};
+
+&switch {
+	status = "okay";
+	switch_lan_bmp = <(ESS_PORT1 | ESS_PORT2 | ESS_PORT3 | ESS_PORT4)>;
+	switch_wan_bmp = <ESS_PORT5>;
+	switch_mac_mode = <MAC_MODE_PSGMII>;
+
+	qcom,port_phyinfo {
+		port@1 {
+			port_id = <1>;
+			phy_address = <0>;
+		};
+		port@2 {
+			port_id = <2>;
+			phy_address = <1>;
+		};
+		port@3 {
+			port_id = <3>;
+			phy_address = <2>;
+		};
+		port@4 {
+			port_id = <4>;
+			phy_address = <3>;
+		};
+		port@5 {
+			port_id = <5>;
+			phy_address = <4>;
+		};
+	};
+};
+
+&blsp1_i2c3 {
+	status = "okay";
+	pinctrl-0 = <&i2c_1_pins>;
+	pinctrl-names = "default";
+};
+
+&blsp1_spi1 {
+	status = "okay";
+	pinctrl-0 = <&spi_0_pins>;
+	pinctrl-names = "default";
+};
+
+&blsp1_uart3 {
+	status = "okay";
+	pinctrl-0 = <&serial_3_pins>;
+	pinctrl-names = "default";
+};
+
+
+// &nss_crypto {
+	// status = "ok";
+// };
+
+&qpic_nand {
+	status = "okay";
+	nand@0 {
+		reg = <0>;
+		nand-ecc-strength = <4>;
+		nand-ecc-step-size = <512>;
+		nand-bus-width = <8>;
+		partitions {
+			compatible = "qcom,smem-part";
+		};
+	};
+};
+
+&qusb_phy_0 {
+	status = "okay";
+	vdd-supply = <&reg_usb_vbus>;
+};
+
+&qusb_phy_1 {
+	status = "disabled";
+};
+
+&ssphy_0 {
+	status = "okay";
+};
+
+&usb2 {
+	status = "disabled";
+};
+
+&usb3 {
+	status = "okay";
+	vbus-supply = <&reg_usb_vbus>;
+};
+
+&rpm {
+	status = "disabled";
+};
+
+&crypto {
+	status = "okay";
+};
+
+&cryptobam {
+	status = "okay";
+};
+
+&pcie_phy {
+	status = "okay";
+};
+
+&prng {
+	status = "okay";
+};
+
+&qpic_bam {
+	status = "okay";
+};
+
+&wifi {
+	status = "okay";
+	qcom,ath11k-fw-memory-mode = <1>;
+	qcom,ath11k-calibration-variant = "KT-AR06-012H";
+};
+
+&cpu_opp_table {
+	opp-864000000 {
+		opp-supported-hw = <0xf>;
+	};
+
+	opp-1056000000 {
+		opp-supported-hw = <0xf>;
+	};
+
+	opp-1200000000 {
+		opp-supported-hw = <0xf>;
+	};
+
+	opp-1320000000 {
+		opp-supported-hw = <0xf>;
+	};
+
+	opp-1440000000 {
+		opp-supported-hw = <0xf>;
+	};
+
+	opp-1512000000 {
+		opp-supported-hw = <0xf>;
+	};
+
+	opp-1608000000 {
+		opp-supported-hw = <0x1>;
+	};
+
+	opp-1800000000 {
+		opp-supported-hw = <0x1>;
+	};
+};

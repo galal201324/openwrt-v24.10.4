@@ -37,6 +37,10 @@ platform_do_upgrade() {
 		fw_setenv bootcount 0
 		nand_do_upgrade "$1"
 		;;
+	lg,gapd-7500|\
+	kt,ar06-012h|\
+	kt,ar07-102h|\
+	kt,dv02-012h|\
 	netgear,wax214)
 		nand_do_upgrade "$1"
 		;;
