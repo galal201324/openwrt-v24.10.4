@@ -173,7 +173,7 @@
 
 &dp2 {
 	status = "okay";
-	label = "lan4";
+	label = "lan";
 	phy-handle = <&qca8075_1>;
 };
 
@@ -183,8 +183,8 @@
 
 &switch {
 	status = "okay";
-	switch_lan_bmp = <ESS_PORT1>;
-	switch_wan_bmp = <ESS_PORT5>;
+	switch_lan_bmp = <ESS_PORT2>;
+	switch_wan_bmp = <ESS_PORT1>;
 	switch_mac_mode = <MAC_MODE_PSGMII>;
 
 	qcom,port_phyinfo {
