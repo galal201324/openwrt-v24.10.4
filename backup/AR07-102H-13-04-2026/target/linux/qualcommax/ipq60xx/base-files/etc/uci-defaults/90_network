@@ -31,31 +31,31 @@
 #uci set firewall.cfg01e63d.synflood_protect='1'
 #uci set firewall.cfg01e63d.input='ACCEPT'
 #uci del firewall.cfg02dc81.network
-#uci del firewall.cfg01e63d.syn_flood
-#uci set firewall.cfg01e63d.synflood_protect='1'
-#uci set firewall.cfg01e63d.input='ACCEPT'
-#uci set firewall.cfg01e63d.forward='ACCEPT'
-#uci set firewall.cfg03dc81.input='ACCEPT'
-#uci set firewall.cfg03dc81.forward='ACCEPT'
-#uci commit firewall
-#sync
+uci del firewall.cfg01e63d.syn_flood
+uci set firewall.cfg01e63d.synflood_protect='1'
+uci set firewall.cfg01e63d.input='ACCEPT'
+uci set firewall.cfg01e63d.forward='ACCEPT'
+uci set firewall.cfg03dc81.input='ACCEPT'
+uci set firewall.cfg03dc81.forward='ACCEPT'
+uci commit firewall
+sync
 ##########################
-#uci set network.lan.ipaddr=192.168.1.20
-#uci set network.lan.netmask='255.255.255.0'
+uci set network.lan.ipaddr=192.168.1.20
+uci set network.lan.netmask='255.255.255.0'
 #uci del network.cfg030f15.ports
 #uci add_list network.cfg030f15.ports='lan1'
 #uci add_list network.cfg030f15.ports='lan2'
 #uci add_list network.cfg030f15.ports='lan3'
 #uci add_list network.cfg030f15.ports='lan4'
 #uci add_list network.cfg030f15.ports='wan'
-#uci add_list network.lan.dns='8.8.8.8'
+uci add_list network.lan.dns='8.8.8.8'
 #uci add_list network.lan.dns='1.1.1.1'
 #uci del network.lan.ip6assign
 #uci set network.lan.delegate='0'
 #uci del network.wan
 #uci set network.globals.packet_steering='1'
 #uci del network.wan6
-#uci commit network
+uci commit network
 ##########################
 #uci del dhcp.lan.ra
 #uci del dhcp.lan.ra_slaac
@@ -67,5 +67,5 @@
 #uci commit dhcp
 ##########################
 
-#exit 0
+exit 0
 

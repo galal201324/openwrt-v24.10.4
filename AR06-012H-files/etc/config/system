@@ -1,0 +1,79 @@
+
+config system
+	option hostname 'KT-AR-06-012H'
+	option timezone '<+03>-3'
+	option ttylogin '0'
+	option log_size '128'
+	option urandom_seed '0'
+	option description 'AL-emprator Router - مجموعة الامبراطور للبرمجيات'
+	option notes 'فريق الدعم الفني:
+المهندس جلال القحم
+774070632
+المهندس محمد باعلوي
+777440819
+https://facebook.com/baalwiy
++967777440819
+https://youtube.com/c/MOHAMMEDABAALAWI
+http://t.me/baalwy2009
+https://facebook.com/baalwiy
+https://api.whatsapp.com/send/?phone=967777440819'
+	option zonename 'Asia/Aden'
+	option log_proto 'udp'
+	option conloglevel '8'
+	option cronloglevel '5'
+
+config timeserver 'ntp'
+	list server '0.openwrt.pool.ntp.org'
+	list server '1.openwrt.pool.ntp.org'
+	list server '2.openwrt.pool.ntp.org'
+	list server '3.openwrt.pool.ntp.org'
+
+config led 'led_lan1_port_link'
+	option name 'LAN1-PORT-LINK-TRAFFIC'
+	option sysfs '90000.mdio-1:04:green:lan'
+	option trigger 'netdev'
+	option mode 'link link_10 link_100 link_1000 half_duplex full_duplex tx rx'
+	option dev 'lan1'
+
+config led 'led_lan2_port_link'
+	option name 'LAN2-PORT-LINK-TRAFFIC'
+	option sysfs '90000.mdio-1:03:green:lan'
+	option trigger 'netdev'
+	option mode 'link link_10 link_100 link_1000 half_duplex full_duplex tx rx'
+	option dev 'lan2'
+
+config led 'led_lan3_port_link'
+	option name 'LAN3-PORT-LINK-TRAFFIC'
+	option sysfs '90000.mdio-1:02:green:lan'
+	option trigger 'netdev'
+	option mode 'link link_10 link_100 link_1000 half_duplex full_duplex tx rx'
+	option dev 'lan3'
+
+config led 'led_lan4_port_link'
+	option name 'LAN4-PORT-LINK-TRAFFIC'
+	option sysfs '90000.mdio-1:01:green:lan'
+	option trigger 'netdev'
+	option mode 'link link_10 link_100 link_1000 half_duplex full_duplex tx rx'
+	option dev 'lan4'
+
+config led 'led_wan_port_link'
+	option name 'WAN-PORT-LINK-TRAFFIC'
+	option sysfs 'green:wan'
+	option trigger 'netdev'
+	option mode 'link link_10 link_100 link_1000 half_duplex full_duplex tx rx'
+	option dev 'wan'
+
+config led 'led_wlan5g'
+	option name 'WLAN5G'
+	option sysfs 'green:wifi'
+	option trigger 'netdev'
+	option mode 'link tx rx'
+	option dev 'phy0-ap0'
+
+config led 'led_wlan2g'
+	option name 'WLAN2G'
+	option sysfs 'green:wifi'
+	option trigger 'netdev'
+	option mode 'link tx rx'
+	option dev 'phy1-ap0'
+

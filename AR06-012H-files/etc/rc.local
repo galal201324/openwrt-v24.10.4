@@ -1,0 +1,7 @@
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+/etc/init.d/firewall disable
+/etc/init.d/log disable
+/etc/init.d/dnsmasq disable
+/etc/init.d/usbipd disable
+exit 0

@@ -11,7 +11,7 @@ if (fs.lsdir(path)) {
 	exit(0);
 }
 
-let fp = fs.popen('fw_printenv');
+let fp = fs.popen('fw_printenv 2>/dev/null');
 let raw = fp.read('all');
 fp.close();
 
