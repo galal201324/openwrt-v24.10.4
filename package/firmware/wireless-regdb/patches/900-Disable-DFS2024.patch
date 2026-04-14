@@ -29,6 +29,22 @@ index 75dc0a3..9c888a9 100644
  
  # AD as part of CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
+@@ -1528,12 +1512,8 @@
+ # Source:
+ # http://www.asep.gob.pa/images/telecomunicaciones/Anexos/PNAF-dic2015.pdf
+-country PA: DFS-FCC
+-	(2400 - 2483.5 @ 40), (36)
+-	(5150 - 5250 @ 80), (36), AUTO-BW
+-	(5250 - 5350 @ 80), (30), AUTO-BW
+-	(5470 - 5725 @ 160), (30)
+-	(5725 - 5850 @ 80), (36)
+-	(57000 - 64000 @ 2160), (43)
++country PA: DFS-UNSET
++	(2400 - 2483 @ 40), (36)
++	(4910 - 6110 @ 160), (36)
+ 
+ # Source:
+ # https://cdn.www.gob.pe/uploads/document/file/1861732/Resoluci%C3%B3n%20Ministerial%20nro%20373-2021-MTC/01.pdf
 @@ -1732,29 +1733,5 @@
  # set out in 47 CFR § 15.205. TODO: reenable and specify a safe TX power here.
 -country US: DFS-FCC
