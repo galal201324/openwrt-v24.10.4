@@ -8,6 +8,8 @@ uci -q get setup.default >/dev/null 2>&1 || uci -q batch <<-EOF >/dev/null
 	set setup.default.AlwSettings='AL'
 	set setup.default.lan_ipaddr='192.168.1.1'
 	set setup.default.lan_netmask='255.255.255.0'
+	set setup.default.reset_button_disabled='0'
+	set setup.default.reset_hold_seconds='5'
 	commit setup
 EOF
 

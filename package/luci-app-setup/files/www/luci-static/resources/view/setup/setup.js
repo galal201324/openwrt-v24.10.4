@@ -122,6 +122,29 @@ return view.extend({
 				uci.set('setup', section_id, 'MK', value);
 		};
 
+		/* ── Section: Security Settings ── */
+		s = m.section(form.NamedSection, 'default', 'setup', _('Security Settings'));
+		s.anonymous = false;
+		s.addremove = false;
+
+		o = s.option(form.Flag, 'reset_button_disabled', _('Disable Reset Button'),
+			_('Ignore the external reset button so factory reset must be triggered from software.'));
+		o.enabled = '1';
+		o.disabled = '0';
+		o.default = '0';
+
+		o = s.option(form.ListValue, 'reset_hold_seconds', _('Factory Reset Hold Time'),
+			_('Select how long the external reset button must be held before factory reset is triggered.'));
+		o.depends('reset_button_disabled', '0');
+		o.value('5', _('5 seconds (default)'));
+		o.value('10', _('10 seconds'));
+		o.value('20', _('20 seconds'));
+		o.value('30', _('30 seconds'));
+		o.value('40', _('40 seconds'));
+		o.value('60', _('60 seconds'));
+		o.default = '5';
+		o.rmempty = false;
+
 		/* ── Section: Quick Network (direct UCI on network config) ── */
 		var net = new form.Map('network', _('Network Configuration'));
 
