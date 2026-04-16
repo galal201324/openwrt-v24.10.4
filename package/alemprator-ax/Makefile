@@ -29,15 +29,15 @@ define Build/Compile
 endef
 
 define Package/alemprator-mtax/install
-  $(INSTALL_DIR) $(1)/usr/bin
-  $(INSTALL_BIN) ./files/usr/bin/alemprator $(1)/usr/bin/
-  $(INSTALL_BIN) ./files/usr/bin/alemprator_c $(1)/usr/bin/
-  $(INSTALL_BIN) ./files/usr/bin/alemprator_f $(1)/usr/bin/
-  $(INSTALL_BIN) ./files/usr/bin/alemprator_l $(1)/usr/bin/
-  $(INSTALL_BIN) ./files/usr/bin/alemprator_m $(1)/usr/bin/
-  $(INSTALL_BIN) ./files/usr/bin/alemprator_m_l $(1)/usr/bin/
-  $(INSTALL_BIN) ./files/usr/bin/alemprator_s $(1)/usr/bin/
-  $(INSTALL_BIN) ./files/usr/bin/alempratore $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) ./files/usr/bin/alemprator $(1)/usr/bin/
+	$(INSTALL_BIN) ./files/usr/bin/alemprator_c $(1)/usr/bin/
+	$(INSTALL_BIN) ./files/usr/bin/alemprator_f $(1)/usr/bin/
+	$(INSTALL_BIN) ./files/usr/bin/alemprator_l $(1)/usr/bin/
+	$(INSTALL_BIN) ./files/usr/bin/alemprator_m $(1)/usr/bin/
+	$(INSTALL_BIN) ./files/usr/bin/alemprator_m_l $(1)/usr/bin/
+	$(INSTALL_BIN) ./files/usr/bin/alemprator_s $(1)/usr/bin/
+	$(INSTALL_BIN) ./files/usr/bin/alempratore $(1)/usr/bin/
 endef
 
 $(eval $(call BuildPackage,alemprator-mtax))
