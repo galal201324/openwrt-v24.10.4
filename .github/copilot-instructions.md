@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-Use `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/AGENTS.md` as the primary repository context before proposing or applying changes.
+Use `AGENTS.md` as the primary repository context before proposing or applying changes.
 
 ## Repository summary
 
@@ -33,12 +33,12 @@ Use `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/AGENTS.md` as the prima
 
 ## Files to read first
 
-- `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/Makefile`
-- `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/www/luci-static/resources/view/setup/setup.js`
-- `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/Makefile`
-- `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_s`
-- `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_c`
-- `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_f`
+- `package/luci-app-setup/Makefile`
+- `package/luci-app-setup/files/www/luci-static/resources/view/setup/setup.js`
+- `package/al-emprator-tools/Makefile`
+- `package/al-emprator-tools/files/usr/bin/alemprator_s`
+- `package/al-emprator-tools/files/usr/bin/alemprator_c`
+- `package/al-emprator-tools/files/usr/bin/alemprator_f`
 
 ## Review checklist before edits
 

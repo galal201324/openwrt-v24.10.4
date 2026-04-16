@@ -14,14 +14,14 @@ This repository is a customized fork of OpenWrt v24.10.4. Keep changes small, ta
 - LuCI quick-setup interface for common router configuration.
 - Depends on `al-emprator-tools`.
 - Important files:
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/Makefile`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/etc/config/setup`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/etc/init.d/setup`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/etc/uci-defaults/40_luci-app-setup`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/usr/share/rpcd/acl.d/luci-app-setup.json`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/usr/share/luci/menu.d/luci-app-setup.json`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/usr/share/ucitrack/luci-app-setup.json`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/www/luci-static/resources/view/setup/setup.js`
+  - `package/luci-app-setup/Makefile`
+  - `package/luci-app-setup/files/etc/config/setup`
+  - `package/luci-app-setup/files/etc/init.d/setup`
+  - `package/luci-app-setup/files/etc/uci-defaults/40_luci-app-setup`
+  - `package/luci-app-setup/files/usr/share/rpcd/acl.d/luci-app-setup.json`
+  - `package/luci-app-setup/files/usr/share/luci/menu.d/luci-app-setup.json`
+  - `package/luci-app-setup/files/usr/share/ucitrack/luci-app-setup.json`
+  - `package/luci-app-setup/files/www/luci-static/resources/view/setup/setup.js`
 - Purpose: collect LAN, system, wireless, and DHCP settings in one LuCI page.
 
 ### `al-emprator-tools`
@@ -38,10 +38,10 @@ This repository is a customized fork of OpenWrt v24.10.4. Keep changes small, ta
   - `alemprator_m`
   - `alemprator_m_l`
 - Important files:
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/Makefile`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_s`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_c`
-  - `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_f`
+  - `package/al-emprator-tools/Makefile`
+  - `package/al-emprator-tools/files/usr/bin/alemprator_s`
+  - `package/al-emprator-tools/files/usr/bin/alemprator_c`
+  - `package/al-emprator-tools/files/usr/bin/alemprator_f`
 - Logic commonly depends on `uci`, `ubus`, `wifi`, and sometimes `/dev/mtdblock*`.
 
 ## Relationship between the packages
@@ -59,12 +59,12 @@ This repository is a customized fork of OpenWrt v24.10.4. Keep changes small, ta
 
 ## Read these files first
 
-1. `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/Makefile`
-2. `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/luci-app-setup/files/www/luci-static/resources/view/setup/setup.js`
-3. `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/Makefile`
-4. `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_s`
-5. `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_c`
-6. `/home/runner/work/openwrt-v24.10.4/openwrt-v24.10.4/package/al-emprator-tools/files/usr/bin/alemprator_f`
+1. `package/luci-app-setup/Makefile`
+2. `package/luci-app-setup/files/www/luci-static/resources/view/setup/setup.js`
+3. `package/al-emprator-tools/Makefile`
+4. `package/al-emprator-tools/files/usr/bin/alemprator_s`
+5. `package/al-emprator-tools/files/usr/bin/alemprator_c`
+6. `package/al-emprator-tools/files/usr/bin/alemprator_f`
 
 ## Understand before editing
 
