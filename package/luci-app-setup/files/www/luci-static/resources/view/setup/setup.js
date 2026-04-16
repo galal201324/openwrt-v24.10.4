@@ -5,8 +5,8 @@
 'require ui';
 'require dom';
 
-function setSetupValue(option, value) {
-	if (value === null || value === undefined || value === '')
+function setSetupValue(option, value, keepEmpty) {
+	if (value === null || value === undefined || (!keepEmpty && value === ''))
 		uci.unset('setup', 'default', option);
 	else
 		uci.set('setup', 'default', option, value);
