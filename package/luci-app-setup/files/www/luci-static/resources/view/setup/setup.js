@@ -218,6 +218,18 @@ return view.extend({
 		option.default = '0';
 		option.description = _('Ignore reset button presses while this option is enabled.');
 
+		option = section.taboption('buttons', form.ListValue, 'reset_hold_seconds', _('Factory reset hold time'));
+		option.rmempty = false;
+		option.default = '5';
+		option.description = _('Choose how long the reset button must be held before factory reset is triggered.');
+		option.depends('reset_button_disabled', '0');
+		option.value('5', _('5 seconds (default)'));
+		option.value('10', _('10 seconds'));
+		option.value('20', _('20 seconds'));
+		option.value('30', _('30 seconds'));
+		option.value('40', _('40 seconds'));
+		option.value('60', _('60 seconds'));
+
 		option = section.taboption('buttons', form.Flag, 'wps_button_disabled', _('Disable WPS/Mesh button'));
 		option.rmempty = false;
 		option.default = '0';
