@@ -1,0 +1,625 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+boot() {
+	XBOOT=1 start
+	SSID=$(uci get wireless.@wifi-iface[0].ssid 2>/dev/null)
+	KEY=$(uci get wireless.@wifi-iface[0].key 2>/dev/null)
+	IPADDR=$(uci get network.lan.ipaddr 2>/dev/null)
+	NETMASK=$(uci get network.lan.netmask 2>/dev/null)
+	fakemesh=$(uci get fakemesh.default.enabled 2>/dev/null || echo 0)
+
+	if [ "$(uci get wizard.default.wifi_ssid 2>/dev/null)" = "$SSID" ] && [ "$(uci get wizard.default.lan_ipaddr 2>/dev/null)" = "$IPADDR" ]; then
+		:
+	else
+		uci set wizard.default=wizard
+		[ "$fakemesh" = "1" ] || {
+			uci set wizard.default.wifi_key="$KEY"
+		}
+		uci set wizard.default.lan_ipaddr="$IPADDR"
+		uci set wizard.default.lan_netmask="$NETMASK"
+		uci commit wizard
+	fi
+}
+
+add_wizard() {
+	[ "x$XBOOT" = "x1" ] && return 0
+	local cfg="$1"
+	local wan_proto wan_ipaddr wan_netmask wan_gateway wan_dns wan_pppoe_user wan_pppoe_pass
+	local wifi_ssid old_wifi_ssid wifi_key normal_key old_normal_key old_wifi_key
+	local lan_ipaddr lan_netmask n_reset old_n_reset reset_timer old_reset_timer watchcat_timer
+	local device ifname ssid_wds_out old_ssid_wds_out
+	local wifi_Vlan old_wifi_Vlan sender_key old_sender_key
+	local sender_wifi_Vlan sender_Vlan key_type owifi_Vlan Mesh_wifi_ssid mesh_key old_mesh_key mesh_wifi_Vlan
+	local sender_hide old_sender_hide sender_pass old_sender_pass ssid_wds_in old_ssid_wds_in
+
+#	config_get wan_proto "$cfg" wan_proto dhcp
+	
+	config_get lan_ipaddr "$cfg" lan_ipaddr
+	config_get lan_netmask "$cfg" lan_netmask
+	test -n "${lan_ipaddr}" && test -n "${lan_netmask}" && {
+		uci set network.lan.ipaddr="${lan_ipaddr}"
+		uci set network.lan.netmask="${lan_netmask}"
+	}
+
+	fakemesh=$(uci get fakemesh.default.enabled 2>/dev/null || echo 0)
+	if ! [ "$fakemesh" = "1" ]; then
+
+	config_get n_reset "$cfg" n_reset 0
+	config_get wifi_ssid "$cfg" wifi_ssid
+         config_get radio0_channel "$cfg" radio0_channel
+         config_get radio1_channel "$cfg" radio1_channel
+	config_get reset_timer "$cfg" reset_timer
+	config_get watchcat_timer "$cfg" watchcat_timer
+	config_get root_password "$cfg" root_password
+	config_get normal_key "$cfg" normal_key
+	config_get wifi_Vlan "$cfg" wifi_Vlan
+	config_get ssid_wds_out "$cfg" ssid_wds_out
+	config_get ssid_wds_in "$cfg" ssid_wds_in
+	config_get Mesh_wifi_ssid "$cfg" Mesh_wifi_ssid
+	config_get key_type "$cfg" key_type
+	config_get sender_key "$cfg" sender_key
+	config_get old_sender_key "$cfg" old_sender_key
+	config_get mesh_key "$cfg" mesh_key
+	config_get old_mesh_key "$cfg" old_mesh_key
+	config_get old_wifi_ssid "$cfg" old_wifi_ssid
+	config_get wifi_key "$cfg" wifi_key
+	config_get old_wifi_key "$cfg" old_wifi_key
+	config_get old_normal_key "$cfg" old_normal_key
+	config_get sender_hide "$cfg" old_sender_hide
+	config_get sender_pass "$cfg" old_sender_pass
+	config_get sender_wifi_Vlan "$cfg" sender_wifi_Vlan
+	config_get mesh_wifi_Vlan "$cfg" mesh_wifi_Vlan
+
+	test -n "${wifi_ssid}" && {		
+		for idx in `seq 0 64`; do
+			uci get wireless.@wifi-iface[$idx] 2>/dev/null || break
+			[ "$(uci get wireless.@wifi-iface[$idx].mode 2>/dev/null)" = "ap" ] && {
+				if [ "$(uci -q get wireless.radio1.band)" = "5g" ]; then
+				    if [ -n "$radio0_channel" ]; then
+                                          uci set wireless.radio0.channel="$radio0_channel"
+                                            fi
+                                            if [ -n "$radio1_channel" ]; then
+                                                uci set wireless.radio1.channel="$radio1_channel"
+                                            fi
+                                            
+					uci set wireless.default_radio1.ssid="${wifi_ssid}_5G"
+					uci set wireless.default_radio0.ssid="${wifi_ssid}"
+					if [ "${wifi_key}" ]; then
+						uci set wireless.default_radio1.encryption='psk2'
+						uci set wireless.default_radio1.key="${wifi_key}"
+						uci set wireless.default_radio0.encryption='psk2'
+						uci set wireless.default_radio0.key="${wifi_key}"
+					else
+						uci set wireless.default_radio1.encryption='none'
+						uci set wireless.default_radio0.encryption='none'
+					fi
+					
+					if [ "${wifi_Vlan}" ]; then
+						uci set wireless.default_radio1.network='Vlan'
+						uci set wireless.default_radio0.network='Vlan'						
+						
+					else
+						uci del network.Vlan
+						uci del network.@device[1] && uci del network.@device[2]
+						uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+						uci set wireless.default_radio1.network='lan'
+						uci set wireless.default_radio0.network='lan'
+					fi
+					
+					if [ "${Mesh_wifi_ssid}" || "${ssid_wds_in}" || "${ssid_wds_out}" ]; then
+						uci commit network && uci commit wireless && uci commit && sync
+						
+						
+					else
+						uci del wireless.wifinet7
+						uci commit network && uci commit wireless && uci commit && sync
+					fi
+					
+				else
+				      if [ -n "$radio0_channel" ]; then
+                                          uci set wireless.radio1.channel="$radio0_channel"
+                                            fi
+                                            if [ -n "$radio1_channel" ]; then
+                                                uci set wireless.radio0.channel="$radio1_channel"
+                                            fi
+					uci set wireless.default_radio1.ssid="${wifi_ssid}"
+					uci set wireless.default_radio0.ssid="${wifi_ssid}_5G"
+					if [ "${wifi_key}" ]; then
+						uci set wireless.default_radio1.encryption='psk2'
+						uci set wireless.default_radio1.key="${wifi_key}"
+						uci set wireless.default_radio0.encryption='psk2'
+						uci set wireless.default_radio0.key="${wifi_key}"
+					else
+						uci set wireless.default_radio1.encryption='none'
+						uci set wireless.default_radio0.encryption='none'
+					fi
+					
+					if [ "${wifi_Vlan}" ]; then
+						uci set wireless.default_radio1.network='Vlan'
+						uci set wireless.default_radio0.network='Vlan'						
+						
+					else
+						uci del network.Vlan
+						uci del network.@device[1] && uci del network.@device[2]
+						uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+						uci set wireless.default_radio1.network='lan'
+						uci set wireless.default_radio0.network='lan'
+					fi
+					
+					if [ "${Mesh_wifi_ssid}" || "${ssid_wds_in}" || "${ssid_wds_out}" ]; then
+						uci commit network && uci commit wireless && uci commit && sync
+						
+						
+					else
+						uci del wireless.wifinet7
+						uci commit network && uci commit wireless && uci commit && sync
+					fi
+				fi
+
+			}
+			if [ "${normal_key}" ]; then
+				uci set wireless.default_radio1.encryption='psk2'
+				uci set wireless.default_radio1.key="${normal_key}"
+				uci set wireless.default_radio0.encryption='psk2'
+				uci set wireless.default_radio0.key="${normal_key}"
+			fi
+#				uci set wireless.default_radio1.encryption='none'
+#				uci set wireless.default_radio1.hidden='1'
+#				uci set wireless.default_radio0.encryption='none'
+#				uci set wireless.default_radio0.hidden='1'
+#			fi
+		done
+	}
+#	fi
+#	
+#	if [ "${set_Settings}" == "${SETUPME}" ]; then
+#	test -n "${normal_key}" && {		
+#		if [ "${normal_key}" ]; then
+#			uci set wireless.default_radio1.encryption='psk2'
+#			uci set wireless.default_radio1.key="${normal_key}"
+#			uci set wireless.default_radio0.encryption='psk2'
+#			uci set wireless.default_radio0.key="${normal_key}"
+#		else
+#			uci set wireless.default_radio1.encryption='none'
+#			uci set wireless.default_radio1.hidden='1'
+#			uci set wireless.default_radio0.encryption='none'
+#			uci set wireless.default_radio0.hidden='1'
+#			uci set wireless.@wifi-iface[$idx].disabled='0'
+#		fi
+#		uci set wireless.default_radio1.encryption='none'
+#		uci set wireless.default_radio1.hidden='1'
+#		uci set wireless.default_radio0.encryption='none'
+#		uci set wireless.default_radio0.hidden='1'
+#		uci set wireless.@wifi-iface[$idx].disabled='0'
+#	}
+	fi
+	
+	if [ "${set_Settings}" == "${sender_wds}" ]; then
+	test -n "${ssid_wds_out}" && {
+		if [ "${wds_type}" == "${Sendvlan}" ]; then
+			uci set wireless.wifinet7=wifi-iface
+			uci set wireless.wifinet7.device='radio1'
+			uci set wireless.wifinet7.mode='ap'
+			uci set wireless.wifinet7.wds='1'
+			uci set wireless.wifinet7.ssid="${ssid_wds_out}"
+			uci set wireless.wifinet7.isolate='1'
+			uci set wireless.wifinet7.disassoc_low_ack='0'
+			if [ "${sender_wifi_Vlan}" ]; then
+				if [ "${sender_key}" ]; then
+					uci set wireless.wifinet7.encryption='psk2'
+					uci set wireless.wifinet7.key="${sender_key}"
+					uci set wireless.wifinet7.hidden='0'
+					uci set network.lan.defaultroute='0'
+					uci set network.lan.delegate='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				else
+					uci set wireless.wifinet7.encryption='none'
+					uci set wireless.wifinet7.hidden='1'
+					uci set network.lan.defaultroute='0'
+					uci set network.lan.delegate='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				fi
+				uci del wireless.radio1.disabled
+				uci add network device # =cfg070f15
+				uci set network.@device[-1].type='8021q'
+				uci set network.@device[-1].ifname='br-lan'
+				uci set network.@device[-1].ipv6='0'
+				uci set network.@device[-1].vid="${sender_wifi_Vlan}"
+				uci set network.@device[-1].name="br-lan.${sender_wifi_Vlan}"
+				uci add network device # =cfg080f15
+				uci set network.@device[-1].ipv6='0'
+				uci set network.@device[-1].type='bridge'
+				uci set network.@device[-1].name="X_${sender_wifi_Vlan}"
+				uci add_list network.@device[-1].ports="br-lan.${sender_wifi_Vlan}"
+				uci set network.Vlan=interface
+				uci set network.Vlan.proto='none'
+				uci set network.Vlan.device="X_${sender_wifi_Vlan}"
+				uci set network.Vlan.defaultroute='0'
+                                    uci set network.Vlan.delegate='0'
+				uci del lldpd.config.lldp_platform
+			         uci set lldpd.config.lldp_platform="${wifi_ssid}"
+			         uci set system.@system[0].hostname="${wifi_ssid}"
+				uci set wireless.default_radio1.network='Vlan'
+				uci set wireless.default_radio0.network='Vlan'
+				uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+			else
+				if [ "${sender_key}" ]; then
+					uci set wireless.wifinet7.encryption='psk2'
+					uci set wireless.wifinet7.key="${sender_key}"
+					uci set wireless.wifinet7.hidden='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				else
+					uci set wireless.wifinet7.encryption='none'
+					uci set wireless.wifinet7.hidden='1'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				fi
+				uci del wireless.radio1.disabled
+				uci del network.Vlan
+				uci set wireless.default_radio1.network='lan'
+				uci set wireless.default_radio0.network='lan'
+				uci del network.@device[1] && uci del network.@device[2]
+				uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+			fi
+			uci set wireless.radio1.cell_density='0'
+			uci set wireless.wifinet7.network='lan'
+			uci set wireless.radio1.channel='44'
+			uci del wireless.radio1.disabled
+			uci commit wireless
+			uci commit
+			sync #&& reboot
+		fi	
+		uci set wireless.wifinet7.vendor_vht='1'
+		uci commit wireless
+		uci commit network
+		uci commit
+		sync #&& reboot
+	(sleep 2
+	/etc/init.d/network restart
+	/etc/init.d/system reload
+	/etc/init.d/wpad restart
+	/etc/init.d/lldpd restart
+	/etc/init.d/lldpd reload)&	
+		uci commit wireless
+		uci commit network
+		uci commit
+		sync #&& reboot
+	}
+	
+	fi
+	
+	if [ "${set_Settings}" == "${sender_wds}" ]; then
+	test -n "${ssid_wds_in}" && {
+		if [ "${wds_type}" == "${Resndvlan}" ]; then
+			uci set wireless.wifinet7=wifi-iface
+			uci set wireless.wifinet7.device='radio1'
+			uci set wireless.wifinet7.mode='sta'
+			uci set wireless.wifinet7.wds='1'
+			uci set wireless.wifinet7.ssid="${ssid_wds_in}"
+			uci set wireless.wifinet7.isolate='1'
+			uci set wireless.wifinet7.disassoc_low_ack='0'
+			uci del wireless.wifinet7.hidden
+			uci del wireless.wifinet7.isolate
+			if [ "${sender_wifi_Vlan}" ]; then
+				if [ "${sender_key}" ]; then
+					uci set wireless.wifinet7.encryption='psk2'
+					uci set wireless.wifinet7.key="${sender_key}"
+					uci set network.lan.defaultroute='0'
+					uci set network.lan.delegate='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				else
+					uci set wireless.wifinet7.encryption='none'
+					uci set network.lan.defaultroute='0'
+					uci set network.lan.delegate='0'
+					uci del network.Vlan
+					uci set wireless.default_radio1.network='lan'
+					uci set wireless.default_radio0.network='lan'
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				fi
+				uci del wireless.radio1.disabled
+				uci add network device # =cfg070f15
+				uci set network.@device[-1].ipv6='0'
+				uci set network.@device[-1].type='8021q'
+				uci set network.@device[-1].ifname='br-lan'
+				uci set network.@device[-1].vid="${sender_wifi_Vlan}"
+				uci set network.@device[-1].name="br-lan.${sender_wifi_Vlan}"
+				uci add network device # =cfg080f15
+				uci set network.@device[-1].ipv6='0'
+				uci set network.@device[-1].type='bridge'
+				uci set network.@device[-1].name="X_${sender_wifi_Vlan}"
+				uci add_list network.@device[-1].ports="br-lan.${sender_wifi_Vlan}"
+				uci set network.Vlan=interface
+				uci set network.Vlan.proto='none'
+				uci set network.Vlan.device="X_${sender_wifi_Vlan}"
+			         uci set network.Vlan.defaultroute='0'
+                                    uci set network.Vlan.delegate='0'
+				uci del lldpd.config.lldp_platform
+			         uci set lldpd.config.lldp_platform="${wifi_ssid}"
+			         uci set system.@system[0].hostname="${wifi_ssid}"
+				uci set wireless.default_radio1.network='Vlan'
+				uci set wireless.default_radio0.network='Vlan'
+				uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+			else
+				if [ "${sender_key}" ]; then
+					uci set wireless.wifinet7.encryption='psk2'
+					uci set wireless.wifinet7.key="${sender_key}"
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				else
+					uci set wireless.wifinet7.encryption='none'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				fi
+				uci del wireless.radio1.disabled
+				uci del network.Vlan
+				uci set wireless.default_radio1.network='lan'
+				uci set wireless.default_radio0.network='lan'
+				uci del network.@device[1] && uci del network.@device[2]
+				uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+			fi
+			uci set wireless.radio1.cell_density='0'
+			uci set wireless.wifinet7.network='lan'
+			uci set wireless.radio1.channel='44'
+			uci del wireless.radio1.disabled
+			uci commit wireless
+			uci commit
+			sync #&& reboot
+		fi	
+		uci set wireless.wifinet7.vendor_vht='1'
+		uci commit wireless
+		uci commit network
+		uci commit
+		sync #&& reboot
+	(sleep 2
+	/etc/init.d/network restart
+	/etc/init.d/system reload
+	/etc/init.d/wpad restart
+	/etc/init.d/lldpd restart
+	/etc/init.d/lldpd reload)&	
+		uci commit wireless
+		uci commit network
+		uci commit
+		sync #&& reboot
+	}
+	fi
+	
+	if [ "${set_Settings}" == "${sender_mesh}" ]; then
+	test -n "${Mesh_wifi_ssid}" && {
+		if [ "${set_Settings}" == "${sender_mesh}" ]; then
+			uci set wireless.wifinet7=wifi-iface
+			uci set wireless.wifinet7.device='radio1'
+			uci set wireless.wifinet7.mode='mesh'
+			uci set wireless.wifinet7.mesh_id="${Mesh_wifi_ssid}"
+			uci set wireless.wifinet7.mesh_fwding='1'
+			uci set wireless.wifinet7.vendor_vht='1'
+			uci set wireless.wifinet7.mesh_rssi_threshold='0'
+			uci set wireless.wifinet7.encryption='sae'
+			uci set wireless.wifinet7.isolate='1'
+			uci set wireless.wifinet7.disassoc_low_ack='0'
+			uci set wireless.wifinet7.key="absd_${Mesh_wifi_ssid}"
+			uci del wireless.wifinet7.hidden
+			uci del wireless.wifinet7.isolate
+			if [ "${mesh_wifi_Vlan}" ]; then
+				if [ "${mesh_key}" ]; then
+					uci set wireless.wifinet7.encryption='sae'
+					uci set wireless.wifinet7.key="${mesh_key}"
+					uci set network.lan.defaultroute='0'
+					uci set network.lan.delegate='0'
+					uci set wireless.wifinet7.vendor_vht='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				else
+					uci set wireless.wifinet7.vendor_vht='1'
+					uci set wireless.wifinet7.encryption='none'
+					uci set network.lan.delegate='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				fi
+				uci del wireless.radio1.disabled
+				uci add network device # =cfg070f15
+				uci set network.@device[-1].ipv6='0'
+				uci set network.@device[-1].type='8021q'
+				uci set network.@device[-1].ifname='br-lan'
+				uci set network.@device[-1].vid="${mesh_wifi_Vlan}"
+				uci set network.@device[-1].name="br-lan.${mesh_wifi_Vlan}"
+				uci add network device # =cfg080f15
+				uci set network.@device[-1].ipv6='0'
+				uci set network.@device[-1].type='bridge'
+				uci set network.@device[-1].name="X_${mesh_wifi_Vlan}"
+				uci add_list network.@device[-1].ports="br-lan.${mesh_wifi_Vlan}"
+				uci set network.Vlan=interface
+				uci set network.Vlan.proto='none'
+				uci set network.Vlan.device="X_${mesh_wifi_Vlan}"
+				uci set network.Vlan.defaultroute='0'
+                                    uci set network.Vlan.delegate='0'
+				uci del lldpd.config.lldp_platform
+			         uci set lldpd.config.lldp_platform="${wifi_ssid}"
+		    	         uci set system.@system[0].hostname="${wifi_ssid}"
+				uci set wireless.default_radio1.network='Vlan'
+				uci set wireless.default_radio0.network='Vlan'
+				uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+			else
+				if [ "${mesh_key}" ]; then
+					uci set wireless.wifinet7.encryption='sae'
+					uci set wireless.wifinet7.key="${mesh_key}"
+					uci set wireless.wifinet7.vendor_vht='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				else
+					uci set wireless.wifinet7.encryption='none'
+					uci set wireless.wifinet7.vendor_vht='0'
+					uci del network.Vlan
+					uci del network.@device[1] && uci del network.@device[2]
+					uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+				fi
+				uci del wireless.radio1.disabled
+				uci del network.Vlan
+				uci set wireless.default_radio1.network='lan'
+				uci set wireless.default_radio0.network='lan'
+				uci del network.@device[1] && uci del network.@device[2]
+				uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+			fi
+			uci set wireless.radio1.cell_density='0'
+			uci set wireless.wifinet7.network='lan'
+			uci set wireless.radio1.channel='44'
+			uci del wireless.radio1.disabled
+			uci commit wireless
+			uci commit
+			sync #&& reboot
+		fi
+		uci set wireless.wifinet7.vendor_vht='1'
+		uci commit wireless
+		uci commit network
+		uci commit
+		sync #&& reboot
+	(sleep 2
+	/etc/init.d/network restart
+	/etc/init.d/system reload
+	/etc/init.d/wpad restart
+	/etc/init.d/lldpd restart
+	/etc/init.d/lldpd reload)&	
+		uci commit wireless
+		uci commit network
+		uci commit
+		sync #&& reboot
+	}
+	
+	fi
+	
+	if [ "${set_Settings}" == "${owifi_Vlan}" ]; then
+	test -n "${wifi_Vlan}" && {
+		if [ "${set_Settings}" == "${owifi_Vlan}" ]; then
+			uci set network.lan.ipaddr="${lan_ipaddr}"
+			uci set network.lan.netmask="${lan_netmask}"
+			uci set network.lan.defaultroute='0'
+			uci set network.lan.delegate='0'
+			uci del lldpd.config.lldp_platform
+			uci set lldpd.config.lldp_platform="${wifi_ssid}"
+			uci set system.@system[0].hostname="${wifi_ssid}"
+			uci del network.@device[1] && uci del network.@device[2]
+			uci commit network
+			uci commit
+		fi
+		uci add network device # =cfg070f15
+		uci set network.@device[-1].type='8021q'
+		uci set network.@device[-1].ifname='br-lan'
+		uci set network.@device[-1].vid="${wifi_Vlan}"
+		uci set network.@device[-1].name="br-lan.${wifi_Vlan}"
+                  uci set network.@device[-1].ipv6='0'
+		uci add network device # =cfg080f15
+		uci set network.@device[-1].type='bridge'
+		uci set network.@device[-1].name="X_${wifi_Vlan}"
+                  uci set network.@device[-1].ipv6='0'
+		uci add_list network.@device[-1].ports="br-lan.${wifi_Vlan}"
+		uci set network.Vlan=interface
+		uci set network.Vlan.proto='none'
+		uci set network.Vlan.device="X_${wifi_Vlan}"
+		uci set network.Vlan.defaultroute='0'
+                  uci set network.Vlan.delegate='0'
+		uci del lldpd.config.lldp_platform
+		uci set lldpd.config.lldp_platform="${wifi_ssid}"
+		uci set system.@system[0].hostname="${wifi_ssid}"
+		uci set wireless.default_radio1.network='Vlan'
+		uci set wireless.default_radio0.network='Vlan'
+		uci del network.@device[1] && uci commit network && uci commit wireless && uci commit && sync
+		#reboot
+	}
+	fi
+	
+	nreset=$(uci get wizard.default.n_reset 2>/dev/null || echo 0)
+	if ! [ "$nreset" = "0" ]; then
+	test -n "${n_reset}" && {
+		mv /etc/rc.button/reset /etc/rc.button/reset2
+#		mv /etc/rc.button/reset9 /etc/rc.button/reset
+		uci commit && sync
+	}
+	else
+		cp /usr/oldreset/reset /etc/rc.button/reset
+		uci commit && sync
+	fi
+	
+	resetetimer=$(uci get wizard.default.reset_timer 2>/dev/null || echo 20)
+	if ! [ "$resetetimer" = "20" ]; then
+	test -n "${reset_timer}" && {
+		cp /usr/resettimer/reset /etc/rc.button/reset
+		uci commit && sync
+	}
+	fi
+
+        if [ -n "$root_password" ]; then
+          (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null
+          uci delete wizard.default.root_password
+          uci commit && sync
+        fi
+        
+#	watchcattimer=$(uci get wizard.default.watchcat_timer 2>/dev/null || echo 6)
+#	if ! [ "$watchcattimer" = "6" ]; then
+	if [ "${watchcat_timer}" ]; then
+	test -n "${watchcat_timer}" && {
+		if [ "${watchcat_timer}" ]; then
+		         uci del watchcat.@watchcat[0]
+			uci add watchcat watchcat # =cfg01e014
+			uci set watchcat.@watchcat[-1].mode='periodic_reboot'
+			uci set watchcat.@watchcat[-1].period="${watchcat_timer}h"
+			uci set watchcat.@watchcat[-1].forcedelay='0'
+			uci commit network
+			uci commit wireless
+			uci commit && sync
+		
+		fi
+	}
+	else
+		uci del watchcat.@watchcat[0]
+		uci commit && sync
+	
+	fi
+
+	uci commit network
+	uci commit wireless
+	(sleep 2
+	 /etc/init.d/network restart
+	 /etc/init.d/system reload
+	 /etc/init.d/wpad restart
+	 /etc/init.d/lldpd restart
+	 /etc/init.d/lldpd reload)&
+}
+
+start() {
+	config_load wizard
+	config_foreach add_wizard wizard
+	uci set wireless.wifinet7.vendor_vht='1'
+	uci commit wireless
+	uci commit network
+	uci commit
+	sync #&& reboot
+	(sleep 1
+	/etc/init.d/network restart
+	/etc/init.d/system reload
+	/etc/init.d/wpad restart
+	/etc/init.d/lldpd restart
+	/etc/init.d/lldpd reload)&	
+	uci commit wireless
+	uci commit network
+	uci commit
+}
+
+restart() {
+	XRELOAD=1 start
+}

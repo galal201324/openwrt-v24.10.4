@@ -1,0 +1,13 @@
+Package: luci-app-wizard
+Version: 1.0.1-1
+Depends: libc, luci-base, rpcd-mod-iwinfo
+Source: feeds/x/luci-app-wizard
+SourceName: luci-app-wizard
+License: GPLv3
+LicenseFiles: LICENSE
+Section: opt
+SourceDateEpoch: 1721688997
+Maintainer: Chen Minqiang <ptpt52@gmail.com>
+Architecture: all
+Installed-Size: 5969
+Description:  LuCI Support for wizard.

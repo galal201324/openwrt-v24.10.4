@@ -1,0 +1,32 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+OVERLAY="$( grep ' /overlay ' /proc/mounts )"
+timerr=$(uci get wizard.default.reset_timer 2>/dev/null || echo 20)
+
+case "$ACTION" in
+pressed)
+	[ -z "$OVERLAY" ] && return 0
+
+	return 5
+;;
+timeout)
+	. /etc/diag.sh
+	set_state failsafe
+;;
+released)
+	if [ "$SEEN" -lt 1 ]
+	then
+		echo "REBOOT" > /dev/console
+		sync
+		reboot
+	elif [ "$SEEN" -ge "$timerr" -a -n "$OVERLAY" ]
+	then
+		echo "FACTORY RESET" > /dev/console
+		firstboot -y && reboot &
+	fi
+;;
+esac
+
+return 0

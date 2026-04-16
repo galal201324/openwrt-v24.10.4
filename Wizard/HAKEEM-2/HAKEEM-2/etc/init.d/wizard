@@ -1,0 +1,216 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+boot() {
+	XBOOT=1 start
+	SSID=$(uci get wireless.@wifi-iface[0].ssid 2>/dev/null)
+	KEY=$(uci get wireless.@wifi-iface[0].key 2>/dev/null)
+	IPADDR=$(uci get network.lan.ipaddr 2>/dev/null)
+	NETMASK=$(uci get network.lan.netmask 2>/dev/null)
+	fakemesh=$(uci get fakemesh.default.enabled 2>/dev/null || echo 0)
+
+	if [ "$(uci get wizard.default.wifi_ssid 2>/dev/null)" = "$SSID" ] && [ "$(uci get wizard.default.lan_ipaddr 2>/dev/null)" = "$IPADDR" ]; then
+		:
+	else
+		uci set wizard.default=wizard
+		[ "$fakemesh" = "1" ] || {
+			uci set wizard.default.wifi_ssid="$SSID"
+			uci set wizard.default.wifi_key="$KEY"
+		}
+		uci set wizard.default.lan_ipaddr="$IPADDR"
+		uci set wizard.default.lan_netmask="$NETMASK"
+		uci commit wizard
+	fi
+}
+
+
+
+add_wizard() {
+	[ "x$XBOOT" = "x1" ] && return 0
+	local cfg="$1"
+	local lan_ipaddr lan_netmask vlan_id isVlan
+	local wifi_ssid wifi_key wifi_mode special_ssid special_key
+	local radio_2g radio_5g
+
+	# جلب البيانات
+	config_get lan_ipaddr "$cfg" lan_ipaddr
+	config_get lan_netmask "$cfg" lan_netmask
+	config_get vlan_id "$cfg" vlan_id
+	config_get isVlan "$cfg" isVlan
+	config_get wifi_ssid "$cfg" wifi_ssid
+	config_get wifi_key "$cfg" wifi_key
+	config_get wifi_mode "$cfg" wifi_mode
+	config_get special_ssid "$cfg" special_ssid
+	config_get special_key "$cfg" special_key
+
+	test -n "${lan_ipaddr}" && test -n "${lan_netmask}" && {
+		uci set network.lan.ipaddr="${lan_ipaddr}"
+		uci set network.lan.netmask="${lan_netmask}"
+	}
+
+	# تحديد الراديوهات حسب التردد
+	for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
+		band=$(uci get wireless.$dev.band 2>/dev/null)
+		case "$band" in
+			2g) radio_2g=$dev ;;
+			5g) radio_5g=$dev ;;
+		esac
+	done
+
+	# حذف جميع واجهات WiFi السابقة
+	for section in $(uci show wireless | grep '=wifi-iface' | cut -d. -f2 | cut -d= -f1); do
+		uci delete wireless.$section
+	done
+
+	### واجهة 2G AP
+	uci set wireless.wifinet2g=wifi-iface
+	uci set wireless.wifinet2g.device="$radio_2g"
+	uci set wireless.wifinet2g.mode='ap'
+	uci set wireless.wifinet2g.ssid="$wifi_ssid"
+	uci set wireless.wifinet2g.isolate='1'
+	uci set wireless.wifinet2g.disassoc_low_ack='0'
+	if [ -n "$wifi_key" ]; then
+		uci set wireless.wifinet2g.encryption='psk2'
+		uci set wireless.wifinet2g.key="$wifi_key"
+	else
+		uci set wireless.wifinet2g.encryption='none'
+	fi
+
+	### واجهة 5G AP دائمة
+	uci set wireless.wifinet5g=wifi-iface
+	uci set wireless.wifinet5g.device="$radio_5g"
+	uci set wireless.wifinet5g.mode='ap'
+	uci set wireless.wifinet5g.ssid="${wifi_ssid}_5G"
+	uci set wireless.wifinet5g.isolate='1'
+	uci set wireless.wifinet5g.disassoc_low_ack='0'
+	if [ -n "$wifi_key" ]; then
+		uci set wireless.wifinet5g.encryption='psk2'
+		uci set wireless.wifinet5g.key="$wifi_key"
+	else
+		uci set wireless.wifinet5g.encryption='none'
+	fi
+
+	### إعداد WDS أو Mesh
+	case "$wifi_mode" in
+		mesh_tx|mesh_rx)
+			uci set wireless.wifimesh=wifi-iface
+			uci set wireless.wifimesh.device="$radio_5g"
+			uci set wireless.wifimesh.mode='mesh'
+			uci set wireless.wifimesh.network='lan'
+			uci set wireless.wifimesh.mesh_id="$special_ssid"
+			uci set wireless.wifimesh.mesh_fwding='1'
+			uci set wireless.wifimesh.vendor_vht='1'
+			uci set wireless.wifimesh.mesh_rssi_threshold='0'
+			uci set wireless.wifimesh.isolate='1'
+			uci set wireless.wifimesh.disassoc_low_ack='0'
+			if [ -n "$special_key" ]; then
+				uci set wireless.wifimesh.encryption='sae'
+				uci set wireless.wifimesh.key="$special_key"
+			else
+				uci set wireless.wifimesh.encryption='none'
+			fi
+			;;
+
+		wds_rx)
+			uci set wireless.wifiwds=wifi-iface
+			uci set wireless.wifiwds.device="$radio_5g"
+			uci set wireless.wifiwds.mode='sta'
+			uci set wireless.wifiwds.network='lan'
+			uci set wireless.wifiwds.ssid="$special_ssid"
+			uci set wireless.wifiwds.wds='1'
+			if [ -n "$special_key" ]; then
+				uci set wireless.wifiwds.encryption='psk2'
+				uci set wireless.wifiwds.key="$special_key"
+			else
+				uci set wireless.wifiwds.encryption='none'
+			fi
+			;;
+
+		wds_tx)
+			uci set wireless.wifiwdsap=wifi-iface
+			uci set wireless.wifiwdsap.device="$radio_5g"
+			uci set wireless.wifiwdsap.mode='ap'
+			uci set wireless.wifiwdsap.network='lan'
+			uci set wireless.wifiwdsap.ssid="$special_ssid"
+			uci set wireless.wifiwdsap.wds='1'
+			uci set wireless.wifiwdsap.isolate='1'
+			uci set wireless.wifiwdsap.disassoc_low_ack='0'
+			
+			if [ -n "$special_key" ]; then
+				uci set wireless.wifiwdsap.encryption='psk2'
+				uci set wireless.wifiwdsap.key="$special_key"
+			else
+				uci set wireless.wifiwdsap.encryption='none'
+			fi
+			;;
+	esac
+
+	### إعداد VLAN (فقط لواجهات AP)
+	if [ "$isVlan" = "1" ] && [ -n "$vlan_id" ]; then
+		# حذف أي إعدادات VLAN سابقة
+		for section in $(uci show network | grep '=device' | cut -d. -f2 | cut -d= -f1); do
+			name=$(uci -q get network.$section.name)
+			case "$name" in
+				br-lan.*|vlan_*) uci delete network.$section ;;
+			esac
+		done
+		for section in $(uci show network | grep '=interface' | cut -d. -f2 | cut -d= -f1); do
+			device=$(uci -q get network.$section.device)
+			[ "$device" != "br-lan" ] && echo "$device" | grep -q "vlan_" && uci delete network.$section
+		done
+
+		# إعداد 802.1q VLAN
+		uci set network.vlan_dev=device
+		uci set network.vlan_dev.type='8021q'
+		uci set network.vlan_dev.ifname='br-lan'
+		uci set network.vlan_dev.vid="$vlan_id"
+		uci set network.vlan_dev.ipv6='0'
+		uci set network.vlan_dev.name="br-lan.${vlan_id}"
+
+		# bridge جديد
+		uci set network.vlan_bridge=device
+		uci set network.vlan_bridge.type='bridge'
+		uci set network.vlan_bridge.name="vlan_${vlan_id}"
+		uci set network.vlan_bridge.bridge_empty='1'
+		uci set network.vlan_bridge.ipv6='0'
+		uci add_list network.vlan_bridge.ports="br-lan.${vlan_id}"
+
+		# واجهة unmanaged
+		uci set network.vlans=interface
+		uci set network.vlans.proto='none'
+		uci set network.vlans.device="vlan_${vlan_id}"
+
+		# ربط VLAN بواجهات الـ AP فقط
+		uci set wireless.wifinet2g.network="vlans"
+		uci set wireless.wifinet5g.network="vlans"
+	else
+		# الربط بـ lan في حال عدم وجود VLAN
+		for section in $(uci show network | grep '=device' | cut -d. -f2 | cut -d= -f1); do
+			name=$(uci -q get network.$section.name)
+			case "$name" in
+				br-lan.*|vlan_*) uci delete network.$section ;;
+			esac
+		done
+		for section in $(uci show network | grep '=interface' | cut -d. -f2 | cut -d= -f1); do
+			device=$(uci -q get network.$section.device)
+			[ "$device" != "br-lan" ] && echo "$device" | grep -q "vlan_" && uci delete network.$section
+		done
+		uci set wireless.wifinet2g.network='lan'
+		uci set wireless.wifinet5g.network='lan'
+	fi
+
+	# حفظ وتحديث
+	uci commit wireless
+	uci commit network
+	(sleep 2 && /etc/init.d/network reload) &
+}
+
+start() {
+	config_load wizard
+	config_foreach add_wizard wizard
+}
+
+restart() {
+	XRELOAD=1 start
+}

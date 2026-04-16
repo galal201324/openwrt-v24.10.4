@@ -1,0 +1,7 @@
+
+config wizard 'default'
+	option lan_netmask '255.255.255.0'
+	option set_Settings 'owifi_Vlan'
+	option lan_ipaddr '192.168.1.20'
+         option radio0_channel '1'
+         option radio1_channel '52'

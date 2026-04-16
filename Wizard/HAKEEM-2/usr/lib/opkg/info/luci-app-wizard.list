@@ -1,0 +1,8 @@
+/www/luci-static/resources/view/wizard/wizard.js
+/usr/share/ucitrack/luci-app-wizard.json
+/etc/uci-defaults/40_luci-app-wizard
+/usr/lib/lua/luci/i18n/wizard.zh-cn.lmo
+/usr/share/rpcd/acl.d/luci-app-wizard.json
+/etc/init.d/wizard
+/etc/config/wizard
+/usr/share/luci/menu.d/luci-app-wizard.json
