@@ -34,6 +34,7 @@ if [[ -z "${upstream}" ]]; then
 fi
 
 remote_name="${upstream%%/*}"
+can_push=0
 
 if ! git -C "${repo_root}" fetch --quiet --prune "${remote_name}"; then
     log "fetch failed for ${remote_name}"
@@ -68,13 +69,22 @@ if ! git -C "${repo_root}" pull --rebase --autostash --quiet; then
     exit 1
 fi
 
+if GIT_TERMINAL_PROMPT=0 git -C "${repo_root}" push --dry-run --porcelain >/dev/null 2>&1; then
+    can_push=1
+fi
+
 ahead_count="$(git -C "${repo_root}" rev-list --count '@{u}..HEAD')"
 if [[ "${ahead_count}" != "0" ]]; then
+    if [[ "${can_push}" != "1" ]]; then
+        log "push unavailable on ${branch}; ${ahead_count} commit(s) waiting"
+        exit 0
+    fi
+
     if git -C "${repo_root}" push --quiet; then
         log "pushed ${ahead_count} commit(s) from ${branch}"
     else
         log "push failed on ${branch}"
-        exit 1
+        exit 0
     fi
 fi
 
