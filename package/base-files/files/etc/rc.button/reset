@@ -14,12 +14,11 @@ reset_hold_seconds() {
 
 	hold="$(uci -q get setup.default.reset_hold_seconds)"
 	case "$hold" in
-	''|*[!0-9]*)
+	''|0|*[!0-9]*)
 		hold="$DEFAULT_RESET_HOLD"
 		;;
 	esac
 
-	[ "$hold" -ge 1 ] 2>/dev/null || hold="$DEFAULT_RESET_HOLD"
 	echo "$hold"
 }
 

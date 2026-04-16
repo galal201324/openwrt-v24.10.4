@@ -116,10 +116,7 @@ return view.extend({
 			return uci.get('setup', section_id, 'MK') || uci.get('wireless', 'wifinet2', 'key');
 		};
 		o.write = function(section_id, value) {
-			if (value === null || value === undefined || value === '')
-				uci.unset('setup', section_id, 'MK');
-			else
-				uci.set('setup', section_id, 'MK', value);
+			setSetupValue('MK', value);
 		};
 
 		/* ── Section: Security Settings ── */
