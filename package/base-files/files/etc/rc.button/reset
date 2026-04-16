@@ -24,10 +24,12 @@ reset_hold_seconds() {
 
 case "$ACTION" in
 pressed)
+	RESET_HOLD="$(reset_hold_seconds)"
 	[ -z "$OVERLAY" ] && return 0
 	reset_button_disabled && return 0
+	[ "$RESET_HOLD" -le 255 ] 2>/dev/null || RESET_HOLD=255
 
-	return "$(reset_hold_seconds)"
+	return "$RESET_HOLD"
 ;;
 timeout)
 	reset_button_disabled && return 0
