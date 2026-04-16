@@ -1,0 +1,17 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+boot() {
+	XBOOT=1 start
+	command -v alemprator_f >/dev/null 2>&1 && alemprator_f &
+}
+
+start() {
+	[ "x$XBOOT" = "x1" ] && return 0
+	command -v alemprator_s >/dev/null 2>&1 && alemprator_s &
+}
+
+restart() {
+	XRELOAD=1 start
+}

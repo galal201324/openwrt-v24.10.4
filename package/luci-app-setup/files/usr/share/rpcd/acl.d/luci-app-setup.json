@@ -1,0 +1,11 @@
+{
+	"luci-app-setup": {
+		"description": "Grant UCI access for luci-app-setup",
+		"read": {
+			"uci": [ "setup", "wireless" ]
+		},
+		"write": {
+			"uci": [ "setup" ]
+		}
+	}
+}

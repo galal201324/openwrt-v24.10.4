@@ -1,0 +1,12 @@
+touch /etc/config/setup
+touch /etc/config/wireless
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@setup[-1]
+	add ucitrack setup
+	set ucitrack.@setup[-1].init=setup
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0
