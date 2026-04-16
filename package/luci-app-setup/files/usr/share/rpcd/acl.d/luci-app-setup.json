@@ -2,10 +2,18 @@
 	"luci-app-setup": {
 		"description": "Grant UCI access for luci-app-setup",
 		"read": {
-			"uci": [ "setup", "wireless" ]
+			"uci": [ "setup", "wireless", "network", "dhcp", "firewall", "system" ],
+			"ubus": {
+				"network.interface": [ "dump" ],
+				"system": [ "board" ],
+				"uci": [ "get", "state" ]
+			}
 		},
 		"write": {
-			"uci": [ "setup" ]
+			"uci": [ "setup", "wireless", "network", "dhcp", "firewall", "system" ],
+			"ubus": {
+				"uci": [ "set", "delete", "commit", "apply" ]
+			}
 		}
 	}
 }

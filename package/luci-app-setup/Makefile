@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-setup
 PKG_VERSION:=1.0
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 PKGARCH:=all
 PKG_LICENSE:=GPL-3.0-only
@@ -12,13 +12,15 @@ include $(INCLUDE_DIR)/package.mk
 define Package/luci-app-setup
   SECTION:=luci
   CATEGORY:=LuCI
-	TITLE:=LuCI Support for ALemprator Setup
-	DEPENDS:=+luci-base +rpcd
+  SUBMENU:=3. Applications
+  TITLE:=LuCI Quick Setup (ALemprator)
+  DEPENDS:=+luci-base +rpcd
 endef
 
 define Package/luci-app-setup/description
- Extracted ALemprator LuCI frontend package rebuilt from device rootfs.
- Backend binaries are optional and currently available only for mipsel_24kc.
+ LuCI web interface for quick router setup and configuration.
+ Provides fast access to common router settings including
+ LAN IP, network, wireless, DHCP, and firewall configuration.
 endef
 
 define Package/luci-app-setup/conffiles
@@ -40,6 +42,7 @@ define Package/luci-app-setup/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/etc/uci-defaults/40_luci-app-setup $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/etc/uci-defaults/alemprator_c $(1)/etc/uci-defaults/
+	$(INSTALL_BIN) ./files/etc/uci-defaults/ali_c $(1)/etc/uci-defaults/
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
 	$(INSTALL_DATA) ./files/usr/share/luci/menu.d/luci-app-setup.json $(1)/usr/share/luci/menu.d/
 	$(INSTALL_DIR) $(1)/usr/share/ucitrack
