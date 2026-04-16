@@ -1,0 +1,27 @@
+#!/bin/sh
+
+touch /etc/config/setup
+touch /etc/config/wireless
+
+lan_ipaddr="$(uci -q get network.lan.ipaddr)"
+lan_netmask="$(uci -q get network.lan.netmask)"
+
+[ -n "$lan_ipaddr" ] || lan_ipaddr="192.168.1.1"
+[ -n "$lan_netmask" ] || lan_netmask="255.255.255.0"
+
+uci -q batch <<EOF >/dev/null
+	set setup.default=setup
+	set setup.default.AlwSettings='AL'
+	set setup.default.lan_ipaddr='$lan_ipaddr'
+	set setup.default.lan_netmask='$lan_netmask'
+	set setup.default.reset_button_disabled='0'
+	set setup.default.wps_button_disabled='0'
+	delete ucitrack.alemprator_setup
+	set ucitrack.alemprator_setup=setup
+	set ucitrack.alemprator_setup.init='setup'
+	commit setup
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

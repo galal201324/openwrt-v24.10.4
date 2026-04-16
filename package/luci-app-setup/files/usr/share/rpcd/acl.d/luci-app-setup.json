@@ -1,0 +1,16 @@
+{
+	"luci-app-setup": {
+		"description": "Grant UCI and status access for luci-app-setup",
+		"read": {
+			"uci": [ "network", "setup", "wireless" ],
+			"ubus": {
+				"system": [ "board" ],
+				"network.interface.lan": [ "status" ],
+				"network.wireless": [ "status" ]
+			}
+		},
+		"write": {
+			"uci": [ "network", "setup", "wireless" ]
+		}
+	}
+}

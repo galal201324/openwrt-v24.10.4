@@ -1,0 +1,4 @@
+#!/bin/sh
+
+logger -t button "ALemprator ignored WPS/Mesh button press because button protection is enabled"
+exit 0

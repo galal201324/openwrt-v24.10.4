@@ -1,0 +1,7 @@
+config setup 'default'
+	option AlwSettings 'AL'
+	option lan_ipaddr '192.168.1.20'
+	option lan_netmask '255.255.255.0'
+	option reset_button_disabled '0'
+	option wps_button_disabled '0'
+
