@@ -3,17 +3,7 @@
 'require form';
 'require uci';
 'require ui';
-'require rpc';
 'require dom';
-'require poll';
-'require fs';
-
-var callInitAction = rpc.declare({
-	object: 'luci',
-	method: 'setInitAction',
-	params: [ 'name', 'action' ],
-	expect: { result: false }
-});
 
 return view.extend({
 	load: function() {
