@@ -5,6 +5,17 @@
 'require ui';
 'require dom';
 
+function setSetupValue(option, value) {
+	if (value == null || value === '')
+		uci.unset('setup', 'default', option);
+	else
+		uci.set('setup', 'default', option, value);
+}
+
+function getWirelessValue(section, option) {
+	return uci.get('wireless', section, option);
+}
+
 return view.extend({
 	load: function() {
 		return Promise.all([
@@ -31,12 +42,26 @@ return view.extend({
 		o.datatype = 'ip4addr';
 		o.placeholder = '192.168.1.1';
 		o.rmempty = false;
+		o.cfgvalue = function() {
+			return uci.get('network', 'lan', 'ipaddr') || uci.get('setup', 'default', 'lan_ipaddr');
+		};
+		o.write = function(section_id, value) {
+			uci.set('setup', section_id, 'lan_ipaddr', value);
+			uci.set('network', 'lan', 'ipaddr', value);
+		};
 
 		o = s.option(form.Value, 'lan_netmask', _('LAN Netmask'),
 			_('The subnet mask for the LAN network.'));
 		o.datatype = 'ip4addr';
 		o.placeholder = '255.255.255.0';
 		o.rmempty = false;
+		o.cfgvalue = function() {
+			return uci.get('network', 'lan', 'netmask') || uci.get('setup', 'default', 'lan_netmask');
+		};
+		o.write = function(section_id, value) {
+			uci.set('setup', section_id, 'lan_netmask', value);
+			uci.set('network', 'lan', 'netmask', value);
+		};
 
 		o = s.option(form.ListValue, 'AlwSettings', _('Settings Mode'));
 		o.value('AL', _('AL-emprator (Default)'));
@@ -168,6 +193,24 @@ return view.extend({
 		});
 	},
 
+	syncSetupCache: function() {
+		setSetupValue('lan_ipaddr', uci.get('network', 'lan', 'ipaddr'));
+		setSetupValue('lan_netmask', uci.get('network', 'lan', 'netmask'));
+		setSetupValue('WS', getWirelessValue('default_radio0', 'ssid'));
+		setSetupValue('WS5', getWirelessValue('default_radio1', 'ssid'));
+		setSetupValue('R0K', getWirelessValue('default_radio0', 'key'));
+		setSetupValue('R1K', getWirelessValue('default_radio1', 'key'));
+		setSetupValue('K', getWirelessValue('default_radio0', 'key'));
+		setSetupValue('R0E', getWirelessValue('default_radio0', 'encryption'));
+		setSetupValue('R1E', getWirelessValue('default_radio1', 'encryption'));
+		setSetupValue('R0D', getWirelessValue('default_radio0', 'disabled'));
+		setSetupValue('R1D', getWirelessValue('default_radio1', 'disabled'));
+		setSetupValue('R0H', uci.get('wireless', 'radio0', 'htmode'));
+		setSetupValue('R1H', uci.get('wireless', 'radio1', 'htmode'));
+		setSetupValue('R0C', uci.get('wireless', 'radio0', 'channel'));
+		setSetupValue('R1C', uci.get('wireless', 'radio1', 'channel'));
+	},
+
 	handleSave: function(ev) {
 		var tasks = [];
 
@@ -176,7 +219,10 @@ return view.extend({
 				tasks.push(dom.callClassMethod(map, 'save'));
 			});
 
-		return Promise.all(tasks);
+		return Promise.all(tasks).then(L.bind(function() {
+			this.syncSetupCache();
+			return uci.save();
+		}, this));
 	},
 
 	handleReset: function(ev) {

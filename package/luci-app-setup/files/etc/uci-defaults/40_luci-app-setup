@@ -3,6 +3,14 @@
 touch /etc/config/setup
 touch /etc/config/wireless
 
+uci -q get setup.default >/dev/null 2>&1 || uci -q batch <<-EOF >/dev/null
+	set setup.default=setup
+	set setup.default.AlwSettings='AL'
+	set setup.default.lan_ipaddr='192.168.1.1'
+	set setup.default.lan_netmask='255.255.255.0'
+	commit setup
+EOF
+
 uci -q batch <<-EOF >/dev/null
 	delete ucitrack.@setup[-1]
 	add ucitrack setup

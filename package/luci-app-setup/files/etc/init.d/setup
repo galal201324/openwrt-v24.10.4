@@ -2,16 +2,29 @@
 
 START=99
 
+run_helper() {
+	local helper="$1"
+
+	command -v "$helper" >/dev/null 2>&1 || return 0
+	"$helper"
+}
+
 boot() {
-	XBOOT=1 start
-	command -v alemprator_f >/dev/null 2>&1 && alemprator_f &
+	run_helper alemprator_f
 }
 
 start() {
-	[ "x$XBOOT" = "x1" ] && return 0
-	command -v alemprator_s >/dev/null 2>&1 && alemprator_s &
+	run_helper alemprator_s
+}
+
+reload() {
+	start
+}
+
+reload_service() {
+	start
 }
 
 restart() {
-	XRELOAD=1 start
+	start
 }

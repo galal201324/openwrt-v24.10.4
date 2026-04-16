@@ -5,7 +5,12 @@
 
 ws=$(uci -q get wireless.default_radio0.ssid)
 ws5=$(uci -q get wireless.default_radio1.ssid)
-k=$(uci -q get wireless.default_radio0.key)
+r0k=$(uci -q get wireless.default_radio0.key)
+r1k=$(uci -q get wireless.default_radio1.key)
+r0e=$(uci -q get wireless.default_radio0.encryption)
+r1e=$(uci -q get wireless.default_radio1.encryption)
+r0d=$(uci -q get wireless.default_radio0.disabled)
+r1d=$(uci -q get wireless.default_radio1.disabled)
 lip=$(uci -q get network.lan.ipaddr)
 lnm=$(uci -q get network.lan.netmask)
 r0h=$(uci -q get wireless.radio0.htmode)
@@ -13,9 +18,16 @@ r1h=$(uci -q get wireless.radio1.htmode)
 r0c=$(uci -q get wireless.radio0.channel)
 r1c=$(uci -q get wireless.radio1.channel)
 
+[ -n "$(uci -q get setup.default)" ] || uci -q set setup.default=setup
 [ -n "$ws" ]  && uci -q set setup.default.WS="$ws"
 [ -n "$ws5" ] && uci -q set setup.default.WS5="$ws5"
-[ -n "$k" ]   && uci -q set setup.default.K="$k"
+[ -n "$r0k" ] && uci -q set setup.default.R0K="$r0k"
+[ -n "$r1k" ] && uci -q set setup.default.R1K="$r1k"
+[ -n "$r0k" ] && uci -q set setup.default.K="$r0k"
+[ -n "$r0e" ] && uci -q set setup.default.R0E="$r0e"
+[ -n "$r1e" ] && uci -q set setup.default.R1E="$r1e"
+[ -n "$r0d" ] && uci -q set setup.default.R0D="$r0d"
+[ -n "$r1d" ] && uci -q set setup.default.R1D="$r1d"
 [ -n "$lip" ] && uci -q set setup.default.lan_ipaddr="$lip"
 [ -n "$lnm" ] && uci -q set setup.default.lan_netmask="$lnm"
 [ -n "$r0h" ] && uci -q set setup.default.R0H="$r0h"

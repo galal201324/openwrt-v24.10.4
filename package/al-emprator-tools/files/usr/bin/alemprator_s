@@ -4,12 +4,20 @@
 # applies changes to wireless / network UCI if they differ
 # from the currently running configuration.
 
+uci -q get setup.default >/dev/null 2>&1 || exit 0
+
 SETTINGS=$(uci -q get setup.default.AlwSettings)
 [ "$SETTINGS" = "manual" ] && exit 0
 
 WS=$(uci -q get setup.default.WS)
 WS5=$(uci -q get setup.default.WS5)
+R0K=$(uci -q get setup.default.R0K)
+R1K=$(uci -q get setup.default.R1K)
 K=$(uci -q get setup.default.K)
+R0E=$(uci -q get setup.default.R0E)
+R1E=$(uci -q get setup.default.R1E)
+R0D=$(uci -q get setup.default.R0D)
+R1D=$(uci -q get setup.default.R1D)
 LIP=$(uci -q get setup.default.lan_ipaddr)
 LNM=$(uci -q get setup.default.lan_netmask)
 R0H=$(uci -q get setup.default.R0H)
@@ -17,31 +25,44 @@ R1H=$(uci -q get setup.default.R1H)
 R0C=$(uci -q get setup.default.R0C)
 R1C=$(uci -q get setup.default.R1C)
 
-CHANGED=0
+[ -n "$R0K" ] || R0K="$K"
+[ -n "$R1K" ] || R1K="$K"
+
+NETWORK_CHANGED=0
+WIRELESS_CHANGED=0
 
 apply() {
-	# $1 = uci path, $2 = desired value
-	[ -z "$2" ] && return
-	CUR=$(uci -q get "$1")
-	if [ "$CUR" != "$2" ]; then
-		uci -q set "$1=$2"
-		CHANGED=1
+	# $1 = config name, $2 = uci path, $3 = desired value
+	[ -z "$3" ] && return
+	CUR=$(uci -q get "$2")
+	if [ "$CUR" != "$3" ]; then
+		uci -q set "$2=$3"
+		if [ "$1" = "wireless" ]; then
+			WIRELESS_CHANGED=1
+		else
+			NETWORK_CHANGED=1
+		fi
 	fi
 }
 
-apply wireless.default_radio0.ssid  "$WS"
-apply wireless.default_radio1.ssid  "$WS5"
-apply wireless.default_radio0.key   "$K"
-apply wireless.default_radio1.key   "$K"
-apply network.lan.ipaddr            "$LIP"
-apply network.lan.netmask           "$LNM"
-apply wireless.radio0.htmode        "$R0H"
-apply wireless.radio1.htmode        "$R1H"
-apply wireless.radio0.channel       "$R0C"
-apply wireless.radio1.channel       "$R1C"
+apply wireless wireless.default_radio0.ssid       "$WS"
+apply wireless wireless.default_radio1.ssid       "$WS5"
+apply wireless wireless.default_radio0.key        "$R0K"
+apply wireless wireless.default_radio1.key        "$R1K"
+apply wireless wireless.default_radio0.encryption "$R0E"
+apply wireless wireless.default_radio1.encryption "$R1E"
+apply wireless wireless.default_radio0.disabled   "$R0D"
+apply wireless wireless.default_radio1.disabled   "$R1D"
+apply network  network.lan.ipaddr                 "$LIP"
+apply network  network.lan.netmask                "$LNM"
+apply wireless wireless.radio0.htmode             "$R0H"
+apply wireless wireless.radio1.htmode             "$R1H"
+apply wireless wireless.radio0.channel            "$R0C"
+apply wireless wireless.radio1.channel            "$R1C"
 
-if [ "$CHANGED" = "1" ]; then
-	uci commit wireless
-	uci commit network
+[ "$WIRELESS_CHANGED" = "1" ] && uci commit wireless
+[ "$NETWORK_CHANGED" = "1" ] && uci commit network
+
+if [ "$WIRELESS_CHANGED" = "1" ]; then
 	wifi reload 2>/dev/null
 fi

@@ -1,5 +1,4 @@
 config setup 'default'
 	option AlwSettings 'AL'
-	option lan_ipaddr '192.168.1.20'
+	option lan_ipaddr '192.168.1.1'
 	option lan_netmask '255.255.255.0'
-
