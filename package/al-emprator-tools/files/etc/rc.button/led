@@ -1,0 +1,4 @@
+#!/bin/sh
+
+command -v alemprator_l >/dev/null 2>&1 || return 0
+alemprator_l

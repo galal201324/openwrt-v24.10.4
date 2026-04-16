@@ -5,6 +5,31 @@
 'require ui';
 'require dom';
 
+/* keepEmpty is reserved for cache values that must preserve an explicit empty string; otherwise empty values clear the cached UCI option. */
+function setSetupValue(option, value, keepEmpty) {
+	if (value === null || value === undefined || (!keepEmpty && value === ''))
+		uci.unset('setup', 'default', option);
+	else
+		uci.set('setup', 'default', option, value);
+}
+
+var setupCacheMappings = [
+	['lan_ipaddr', 'network', 'lan', 'ipaddr'],
+	['lan_netmask', 'network', 'lan', 'netmask'],
+	['WS', 'wireless', 'default_radio0', 'ssid'],
+	['WS5', 'wireless', 'default_radio1', 'ssid'],
+	['R0K', 'wireless', 'default_radio0', 'key'],
+	['R1K', 'wireless', 'default_radio1', 'key'],
+	['R0E', 'wireless', 'default_radio0', 'encryption'],
+	['R1E', 'wireless', 'default_radio1', 'encryption'],
+	['R0D', 'wireless', 'default_radio0', 'disabled'],
+	['R1D', 'wireless', 'default_radio1', 'disabled'],
+	['R0H', 'wireless', 'radio0', 'htmode'],
+	['R1H', 'wireless', 'radio1', 'htmode'],
+	['R0C', 'wireless', 'radio0', 'channel'],
+	['R1C', 'wireless', 'radio1', 'channel']
+];
+
 return view.extend({
 	load: function() {
 		return Promise.all([
@@ -31,17 +56,91 @@ return view.extend({
 		o.datatype = 'ip4addr';
 		o.placeholder = '192.168.1.1';
 		o.rmempty = false;
+		o.cfgvalue = function() {
+			return uci.get('network', 'lan', 'ipaddr') || uci.get('setup', 'default', 'lan_ipaddr');
+		};
+		o.write = function(section_id, value) {
+			uci.set('setup', section_id, 'lan_ipaddr', value);
+			uci.set('network', 'lan', 'ipaddr', value);
+		};
 
 		o = s.option(form.Value, 'lan_netmask', _('LAN Netmask'),
 			_('The subnet mask for the LAN network.'));
 		o.datatype = 'ip4addr';
 		o.placeholder = '255.255.255.0';
 		o.rmempty = false;
+		o.cfgvalue = function() {
+			return uci.get('network', 'lan', 'netmask') || uci.get('setup', 'default', 'lan_netmask');
+		};
+		o.write = function(section_id, value) {
+			uci.set('setup', section_id, 'lan_netmask', value);
+			uci.set('network', 'lan', 'netmask', value);
+		};
 
 		o = s.option(form.ListValue, 'AlwSettings', _('Settings Mode'));
 		o.value('AL', _('AL-emprator (Default)'));
+		o.value('ALM', _('AL-emprator Mesh'));
 		o.value('manual', _('Manual'));
 		o.default = 'AL';
+
+		o = s.option(form.Value, 'MWS', _('Mesh ID'));
+		o.depends('AlwSettings', 'ALM');
+		o.datatype = 'maxlength(32)';
+		o.placeholder = 'ALW_KT_MESH';
+		o.default = 'ALW_KT_MESH';
+		o.rmempty = false;
+		o.cfgvalue = function(section_id) {
+			return uci.get('setup', section_id, 'MWS') || uci.get('wireless', 'wifinet2', 'mesh_id');
+		};
+		o.write = function(section_id, value) {
+			uci.set('setup', section_id, 'MWS', value);
+		};
+
+		o = s.option(form.ListValue, 'SH', _('Mesh Security'));
+		o.depends('AlwSettings', 'ALM');
+		o.value('SP', _('Password Protected'));
+		o.value('NO', _('Open Mesh'));
+		o.default = 'SP';
+		o.cfgvalue = function(section_id) {
+			var encryption = uci.get('wireless', 'wifinet2', 'encryption');
+
+			return uci.get('setup', section_id, 'SH') || (encryption === 'none' ? 'NO' : 'SP');
+		};
+
+		o = s.option(form.Value, 'MK', _('Mesh Password'));
+		o.depends({ AlwSettings: 'ALM', SH: 'SP' });
+		o.datatype = 'wpakey';
+		o.password = true;
+		o.placeholder = 'absd_ALW_KT_MESH';
+		o.cfgvalue = function(section_id) {
+			return uci.get('setup', section_id, 'MK') || uci.get('wireless', 'wifinet2', 'key');
+		};
+		o.write = function(section_id, value) {
+			setSetupValue('MK', value);
+		};
+
+		/* ── Section: Security Settings ── */
+		s = m.section(form.NamedSection, 'default', 'setup', _('Security Settings'));
+		s.anonymous = false;
+		s.addremove = false;
+
+		o = s.option(form.Flag, 'reset_button_disabled', _('Disable Reset Button'),
+			_('Ignore the external reset button so factory reset must be triggered from software.'));
+		o.enabled = '1';
+		o.disabled = '0';
+		o.default = '0';
+
+		o = s.option(form.ListValue, 'reset_hold_seconds', _('Factory Reset Hold Time'),
+			_('Select how long the external reset button must be held before factory reset is triggered.'));
+		o.depends('reset_button_disabled', '0');
+		o.value('5', _('5 seconds (default)'));
+		o.value('10', _('10 seconds'));
+		o.value('20', _('20 seconds'));
+		o.value('30', _('30 seconds'));
+		o.value('40', _('40 seconds'));
+		o.value('60', _('60 seconds'));
+		o.default = '5';
+		o.rmempty = false;
 
 		/* ── Section: Quick Network (direct UCI on network config) ── */
 		var net = new form.Map('network', _('Network Configuration'));
@@ -168,6 +267,15 @@ return view.extend({
 		});
 	},
 
+	syncSetupCache: function() {
+		/* Legacy setup.default keys are kept for alemprator_s/alemprator_f/alemprator_c compatibility:
+		 * WS/WS5=SSIDs, R0K/R1K=keys, R0E/R1E=encryption, R0D/R1D=disabled, R0H/R1H=htmode, R0C/R1C=channel.
+		 */
+		setupCacheMappings.forEach(function(mapping) {
+			setSetupValue(mapping[0], uci.get(mapping[1], mapping[2], mapping[3]));
+		});
+	},
+
 	handleSave: function(ev) {
 		var tasks = [];
 
@@ -176,7 +284,11 @@ return view.extend({
 				tasks.push(dom.callClassMethod(map, 'save'));
 			});
 
-		return Promise.all(tasks);
+		return Promise.all(tasks).then(L.bind(function() {
+			/* Refresh setup.default after the active configs have been saved. */
+			this.syncSetupCache();
+			return uci.save();
+		}, this));
 	},
 
 	handleReset: function(ev) {

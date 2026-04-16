@@ -3,24 +3,48 @@
 . /lib/functions.sh
 
 OVERLAY="$( grep ' /overlay ' /proc/mounts )"
+DEFAULT_RESET_HOLD=5
+
+reset_button_disabled() {
+	[ "$(uci -q get setup.default.reset_button_disabled)" = "1" ]
+}
+
+reset_hold_seconds() {
+	local hold
+
+	hold="$(uci -q get setup.default.reset_hold_seconds)"
+	case "$hold" in
+	''|0|*[!0-9]*)
+		hold="$DEFAULT_RESET_HOLD"
+		;;
+	esac
+
+	echo "$hold"
+}
 
 case "$ACTION" in
 pressed)
+	RESET_HOLD="$(reset_hold_seconds)"
 	[ -z "$OVERLAY" ] && return 0
+	reset_button_disabled && return 0
+	[ "$RESET_HOLD" -le 255 ] 2>/dev/null || RESET_HOLD=255
 
-	return 5
+	return "$RESET_HOLD"
 ;;
 timeout)
+	reset_button_disabled && return 0
 	. /etc/diag.sh
 	set_state failsafe
 ;;
 released)
+	reset_button_disabled && return 0
+	RESET_HOLD="$(reset_hold_seconds)"
 	if [ "$SEEN" -lt 1 ]
 	then
 		echo "REBOOT" > /dev/console
 		sync
 		reboot
-	elif [ "$SEEN" -ge 5 -a -n "$OVERLAY" ]
+	elif [ "$SEEN" -ge "$RESET_HOLD" -a -n "$OVERLAY" ]
 	then
 		echo "FACTORY RESET" > /dev/console
 		jffs2reset -y && reboot &

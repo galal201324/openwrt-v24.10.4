@@ -5,22 +5,55 @@
 
 ws=$(uci -q get wireless.default_radio0.ssid)
 ws5=$(uci -q get wireless.default_radio1.ssid)
-k=$(uci -q get wireless.default_radio0.key)
+r0k=$(uci -q get wireless.default_radio0.key)
+r1k=$(uci -q get wireless.default_radio1.key)
+r0e=$(uci -q get wireless.default_radio0.encryption)
+r1e=$(uci -q get wireless.default_radio1.encryption)
+r0d=$(uci -q get wireless.default_radio0.disabled)
+r1d=$(uci -q get wireless.default_radio1.disabled)
 lip=$(uci -q get network.lan.ipaddr)
 lnm=$(uci -q get network.lan.netmask)
 r0h=$(uci -q get wireless.radio0.htmode)
 r1h=$(uci -q get wireless.radio1.htmode)
 r0c=$(uci -q get wireless.radio0.channel)
 r1c=$(uci -q get wireless.radio1.channel)
+mesh_mode=$(uci -q get wireless.wifinet2.mode)
+mesh_id=$(uci -q get wireless.wifinet2.mesh_id)
+mesh_key=$(uci -q get wireless.wifinet2.key)
+mesh_enc=$(uci -q get wireless.wifinet2.encryption)
+current_mode=$(uci -q get setup.default.AlwSettings)
 
+[ -n "$(uci -q get setup.default)" ] || uci -q set setup.default=setup
+[ "$current_mode" = "manual" ] && uci -q set setup.default.AlwSettings='manual'
+[ "$current_mode" != "manual" ] && [ "$mesh_mode" = "mesh" ] && uci -q set setup.default.AlwSettings='ALM'
+[ "$current_mode" != "manual" ] && [ "$mesh_mode" != "mesh" ] && uci -q set setup.default.AlwSettings='AL'
 [ -n "$ws" ]  && uci -q set setup.default.WS="$ws"
 [ -n "$ws5" ] && uci -q set setup.default.WS5="$ws5"
-[ -n "$k" ]   && uci -q set setup.default.K="$k"
+[ -n "$r0k" ] && uci -q set setup.default.R0K="$r0k"
+[ -n "$r1k" ] && uci -q set setup.default.R1K="$r1k"
+[ -n "$r0k" ] && uci -q set setup.default.K="$r0k"
+[ -n "$r0e" ] && uci -q set setup.default.R0E="$r0e"
+[ -n "$r1e" ] && uci -q set setup.default.R1E="$r1e"
+[ -n "$r0d" ] && uci -q set setup.default.R0D="$r0d"
+[ -n "$r1d" ] && uci -q set setup.default.R1D="$r1d"
 [ -n "$lip" ] && uci -q set setup.default.lan_ipaddr="$lip"
 [ -n "$lnm" ] && uci -q set setup.default.lan_netmask="$lnm"
 [ -n "$r0h" ] && uci -q set setup.default.R0H="$r0h"
 [ -n "$r1h" ] && uci -q set setup.default.R1H="$r1h"
 [ -n "$r0c" ] && uci -q set setup.default.R0C="$r0c"
 [ -n "$r1c" ] && uci -q set setup.default.R1C="$r1c"
+[ "$mesh_mode" = "mesh" ] && [ -n "$mesh_id" ] && uci -q set setup.default.MWS="$mesh_id"
+[ "$mesh_mode" = "mesh" ] && [ -n "$mesh_key" ] && uci -q set setup.default.MK="$mesh_key"
+if [ "$mesh_mode" = "mesh" ]; then
+	if [ "$mesh_enc" = "none" ]; then
+		uci -q set setup.default.SH='NO'
+	else
+		uci -q set setup.default.SH='SP'
+	fi
+else
+	uci -q delete setup.default.MWS
+	uci -q delete setup.default.MK
+	uci -q delete setup.default.SH
+fi
 
 uci commit setup

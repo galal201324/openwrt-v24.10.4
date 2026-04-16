@@ -40,6 +40,9 @@ define Package/al-emprator-tools/install
 	$(INSTALL_BIN) ./files/usr/bin/alemprator_m_l $(1)/usr/bin/
 	$(INSTALL_BIN) ./files/usr/bin/alemprator_s $(1)/usr/bin/
 	$(INSTALL_BIN) ./files/usr/bin/alempratore $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/etc/rc.button
+	$(INSTALL_BIN) ./files/etc/rc.button/led $(1)/etc/rc.button/
+	$(INSTALL_BIN) ./files/etc/rc.button/wps $(1)/etc/rc.button/
 endef
 
 $(eval $(call BuildPackage,al-emprator-tools))
