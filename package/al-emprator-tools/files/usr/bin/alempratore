@@ -1,0 +1,120 @@
+#!/bin/sh
+# AL-emprator EEPROM Manager (alempratore)
+# Manages WiFi EEPROM data for MT7915 radios.
+# Can dump, write, and reset EEPROM regions on MTD partitions.
+
+usage() {
+	cat <<-EOF
+	AL-emprator - EEPROM Manager
+	Usage: $0 <mtd_num> [options]
+	  -o <hex>   : Offset in hex (e.g. 0x0)
+	  -b <size>  : Block size to dump (decimal)
+	  -m <num>   : MAC-related operation
+	  -s <path>  : Source file for reset/write
+	  -r <path>  : Reset EEPROM from file
+	  -d         : Dump mode (read and display)
+	  -p         : Show radio power info
+	  -h         : Show this help
+	EOF
+	exit 1
+}
+
+[ $# -lt 1 ] && usage
+
+EEPROM_BIN="/lib/firmware/mediatek/mt7915_eeprom_dbdc.bin"
+MTD_NUM="$1"; shift
+
+OFFSET=0
+BSIZE=0
+RESET_FILE=""
+DUMP=0
+POWER=0
+MAC_OP=0
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-o)  OFFSET=$(printf '%d' "$2" 2>/dev/null); shift 2 ;;
+		-b)  BSIZE="$2"; shift 2 ;;
+		-m)  MAC_OP="$2"; shift 2 ;;
+		-s)  RESET_FILE="$2"; shift 2 ;;
+		-r)  RESET_FILE="$2"; shift 2 ;;
+		-d)  DUMP=1; shift ;;
+		-p)  POWER=1; shift ;;
+		-h)  usage ;;
+		*)   shift ;;
+	esac
+done
+
+MTD="/dev/mtdblock${MTD_NUM}"
+[ ! -e "$MTD" ] && { echo "Error: mtd${MTD_NUM} not found!"; exit 1; }
+
+# --- Dump mode ---
+if [ "$DUMP" = "1" ]; then
+	if [ "$BSIZE" -gt 0 ] 2>/dev/null; then
+		printf "Custom Dump: Offset 0x%X, Size 0x%X\n" "$OFFSET" "$BSIZE"
+		dd if="$MTD" bs=1 skip="$OFFSET" count="$BSIZE" 2>/dev/null | \
+			hexdump -v -e '"%08_ax  " 12/1 "%02X " "\n"'
+	else
+		echo "Error: specify -b <size> for dump"
+		exit 1
+	fi
+	exit 0
+fi
+
+# --- Power info ---
+if [ "$POWER" = "1" ]; then
+	echo "--- Radio Power Information ---"
+	for label in "2G-Power" "5G-Power" "6G-Power"; do
+		printf "%-12s : " "$label"
+		# Read 16 bytes at current offset for each radio
+		dd if="$MTD" bs=1 skip="$OFFSET" count=16 2>/dev/null | \
+			hexdump -v -e '16/1 "%02X " "\n"'
+		OFFSET=$((OFFSET + 16))
+	done
+	exit 0
+fi
+
+# --- Reset from file ---
+if [ -n "$RESET_FILE" ]; then
+	if [ ! -f "$RESET_FILE" ]; then
+		# Fall back to default EEPROM binary
+		if [ -f "$EEPROM_BIN" ]; then
+			RESET_FILE="$EEPROM_BIN"
+		else
+			echo "File $RESET_FILE not found"
+			exit 1
+		fi
+	fi
+	echo "Resetting EEPROM from $RESET_FILE ..."
+	if dd if="$RESET_FILE" of="$MTD" bs=64k 2>/dev/null; then
+		echo "Ap ch and rest WiFi..."
+		wifi down
+		rmmod mt7915e 2>/dev/null
+		modprobe mt7915e 2>/dev/null
+		wifi up
+	else
+		echo "Open file for reset failed"
+		exit 1
+	fi
+	exit 0
+fi
+
+# --- MAC extraction and setup config ---
+if [ "$MAC_OP" != "0" ]; then
+	# Read 6 bytes at offset for radio 0 MAC
+	R0M=$(dd if="$MTD" bs=1 skip="$OFFSET" count=6 2>/dev/null | \
+		hexdump -v -e '6/1 "%02X"' 2>/dev/null)
+	# Read 6 bytes at offset+6 for radio 1 MAC
+	R1M=$(dd if="$MTD" bs=1 skip=$((OFFSET + 6)) count=6 2>/dev/null | \
+		hexdump -v -e '6/1 "%02X"' 2>/dev/null)
+
+	if [ -n "$R0M" ] && [ -n "$R1M" ]; then
+		uci -q set setup.default.R0M="$R0M"
+		uci -q set setup.default.R1M="$R1M"
+		uci commit setup
+		echo "R0M=$R0M  R1M=$R1M"
+	fi
+	exit 0
+fi
+
+usage

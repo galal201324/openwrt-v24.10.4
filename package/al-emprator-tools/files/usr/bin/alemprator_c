@@ -1,0 +1,32 @@
+#!/bin/sh
+# AL-emprator first-boot configuration
+# Reads current wireless/network settings and saves factory defaults
+# into the setup UCI config for the Quick Setup page.
+
+# Ensure the setup config section exists
+uci -q get setup.default >/dev/null 2>&1 || {
+	uci -q set setup.default=setup
+}
+
+ws=$(uci -q get wireless.default_radio0.ssid)
+ws5=$(uci -q get wireless.default_radio1.ssid)
+k=$(uci -q get wireless.default_radio0.key)
+lip=$(uci -q get network.lan.ipaddr)
+lnm=$(uci -q get network.lan.netmask)
+r0h=$(uci -q get wireless.radio0.htmode)
+r1h=$(uci -q get wireless.radio1.htmode)
+r0c=$(uci -q get wireless.radio0.channel)
+r1c=$(uci -q get wireless.radio1.channel)
+
+uci -q set setup.default.AlwSettings='AL'
+[ -n "$lip" ] && uci -q set setup.default.lan_ipaddr="$lip"
+[ -n "$lnm" ] && uci -q set setup.default.lan_netmask="$lnm"
+[ -n "$ws" ]  && uci -q set setup.default.WS="$ws"
+[ -n "$ws5" ] && uci -q set setup.default.WS5="$ws5"
+[ -n "$k" ]   && uci -q set setup.default.K="$k"
+[ -n "$r0h" ] && uci -q set setup.default.R0H="$r0h"
+[ -n "$r1h" ] && uci -q set setup.default.R1H="$r1h"
+[ -n "$r0c" ] && uci -q set setup.default.R0C="$r0c"
+[ -n "$r1c" ] && uci -q set setup.default.R1C="$r1c"
+
+uci commit setup

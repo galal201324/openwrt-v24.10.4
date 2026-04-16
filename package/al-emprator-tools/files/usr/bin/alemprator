@@ -1,0 +1,102 @@
+#!/bin/sh
+# AL-emprator MAC Address Tool
+# Reads and writes MAC addresses from MTD flash partitions
+
+usage() {
+	cat <<-EOF
+	--- AL-emprator MAC Tool ---
+	Usage: $0 [options]
+	  -p [num]   : Partition number (default 1)
+	  -o [hex]   : Offset in hex (default 0x60004)
+	  -m [mac]   : Full MAC (12 hex chars), 6-char prefix (merge with random),
+	               or empty for random MAC
+	  -00        : Use prefix 00E04C
+	  -0c        : Use prefix 0C96CD
+	  -1c        : Use prefix 1CEC72
+	  -b4        : Use prefix B4A94F
+	  -h         : Show this help
+	EOF
+	exit 1
+}
+
+PART="1"
+OFFSET=393220  # 0x60004
+MAC=""
+PREFIX=""
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-p)  PART="$2"; shift 2 ;;
+		-o)  OFFSET=$(printf '%d' "$2" 2>/dev/null); shift 2 ;;
+		-m)  MAC="$2"; shift 2 ;;
+		-00) PREFIX="00E04C"; shift ;;
+		-0c) PREFIX="0C96CD"; shift ;;
+		-1c) PREFIX="1CEC72"; shift ;;
+		-b4) PREFIX="B4A94F"; shift ;;
+		-h|--help) usage ;;
+		*)   shift ;;
+	esac
+done
+
+MTD="/dev/mtdblock${PART}"
+if [ ! -e "$MTD" ]; then
+	echo "Error: mtd${PART} not found!"
+	exit 1
+fi
+
+# ---------- Read mode ----------
+if [ -z "$MAC" ] && [ -z "$PREFIX" ]; then
+	echo "--- AL-emprator Reading Mode ---"
+	CURRENT=$(dd if="$MTD" bs=1 skip="$OFFSET" count=6 2>/dev/null | \
+		hexdump -v -e '6/1 "%02X"' 2>/dev/null)
+	if [ -n "$CURRENT" ]; then
+		FORMATTED=$(echo "$CURRENT" | sed 's/\(..\)/\1:/g; s/:$//')
+		echo "Current Value: $FORMATTED"
+	else
+		echo "Error reading mtd${PART}"
+		exit 1
+	fi
+	exit 0
+fi
+
+# ---------- Write mode ----------
+random_hex() {
+	dd if=/dev/urandom bs=1 count="$1" 2>/dev/null | \
+		hexdump -v -e '1/1 "%02X"'
+}
+
+if [ -n "$PREFIX" ] && [ -z "$MAC" ]; then
+	RAND=$(random_hex 3)
+	MAC="${PREFIX}${RAND}"
+elif [ "${#MAC}" -eq 6 ]; then
+	RAND=$(random_hex 3)
+	MAC="${MAC}${RAND}"
+elif [ "${#MAC}" -eq 12 ]; then
+	: # full MAC provided
+elif [ -z "$MAC" ] && [ -z "$PREFIX" ]; then
+	RAND=$(random_hex 6)
+	MAC="$RAND"
+else
+	echo "Error: Invalid MAC length"
+	exit 1
+fi
+
+MAC=$(echo "$MAC" | tr 'a-f' 'A-F')
+
+echo "--- AL-emprator Fix Mode ---"
+echo "AL-emprator Target MAC: $MAC"
+
+# Convert MAC string to binary bytes and write at offset
+TMPFILE="/tmp/mtd_mac_$$"
+{
+	dd if="$MTD" bs=1 count="$OFFSET" 2>/dev/null
+	printf '%s' "$(echo "$MAC" | sed 's/\(..\)/\\x\1/g' | xargs printf)"
+	dd if="$MTD" bs=1 skip=$((OFFSET + 6)) 2>/dev/null
+} > "$TMPFILE"
+
+if dd if="$TMPFILE" of="$MTD" bs=64k 2>/dev/null; then
+	echo "AL-emprator Success! Please Reboot."
+else
+	echo "AL-emprator Write failed to mtd${PART}"
+fi
+rm -f "$TMPFILE"

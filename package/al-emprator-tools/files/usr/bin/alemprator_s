@@ -1,0 +1,47 @@
+#!/bin/sh
+# AL-emprator setup apply service
+# Called on service start — reads setup.default config and
+# applies changes to wireless / network UCI if they differ
+# from the currently running configuration.
+
+SETTINGS=$(uci -q get setup.default.AlwSettings)
+[ "$SETTINGS" = "manual" ] && exit 0
+
+WS=$(uci -q get setup.default.WS)
+WS5=$(uci -q get setup.default.WS5)
+K=$(uci -q get setup.default.K)
+LIP=$(uci -q get setup.default.lan_ipaddr)
+LNM=$(uci -q get setup.default.lan_netmask)
+R0H=$(uci -q get setup.default.R0H)
+R1H=$(uci -q get setup.default.R1H)
+R0C=$(uci -q get setup.default.R0C)
+R1C=$(uci -q get setup.default.R1C)
+
+CHANGED=0
+
+apply() {
+	# $1 = uci path, $2 = desired value
+	[ -z "$2" ] && return
+	CUR=$(uci -q get "$1")
+	if [ "$CUR" != "$2" ]; then
+		uci -q set "$1=$2"
+		CHANGED=1
+	fi
+}
+
+apply wireless.default_radio0.ssid  "$WS"
+apply wireless.default_radio1.ssid  "$WS5"
+apply wireless.default_radio0.key   "$K"
+apply wireless.default_radio1.key   "$K"
+apply network.lan.ipaddr            "$LIP"
+apply network.lan.netmask           "$LNM"
+apply wireless.radio0.htmode        "$R0H"
+apply wireless.radio1.htmode        "$R1H"
+apply wireless.radio0.channel       "$R0C"
+apply wireless.radio1.channel       "$R1C"
+
+if [ "$CHANGED" = "1" ]; then
+	uci commit wireless
+	uci commit network
+	wifi reload 2>/dev/null
+fi

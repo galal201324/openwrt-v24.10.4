@@ -1,0 +1,57 @@
+#!/bin/sh
+# AL-emprator Mesh LED status indicator
+# Detects mesh/WDS mode and configures the matching LED trigger.
+
+l_mesh=""
+l_wds=""
+
+if [ -d "/sys/class/leds/blue:wds" ]; then
+	l_mesh="green:mesh"
+	l_wds="blue:wds"
+elif [ -d "/sys/class/leds/green:mesh" ]; then
+	l_mesh="green:mesh"
+	l_wds="green:mesh"
+elif [ -d "/sys/class/leds/blue:mesh" ]; then
+	l_mesh="blue:mesh"
+	l_wds="blue:mesh"
+fi
+
+if [ -z "$l_mesh" ] && [ -z "$l_wds" ]; then
+	exit 0
+fi
+
+sleep 2
+
+IFACE_NAME="wifinet2"
+LED_SECTION="led_mesh_switch"
+MODE=$(uci -q get wireless."$IFACE_NAME".mode)
+IWDEV=""
+NAME=""
+SYSFS=""
+
+if [ "$MODE" = "mesh" ]; then
+	IWDEV=$(iw dev | awk '/Interface/ {ifname=$2} /type mesh point/ {print ifname; exit}')
+	NAME="AL-emprator-MESH"
+	SYSFS="$l_mesh"
+elif [ "$MODE" = "ap" ]; then
+	IWDEV=$(iw dev | awk '/Interface/ {ifname=$2} /type AP/ {print ifname; exit}')
+	NAME="AL-emprator-WDS-AP"
+	SYSFS="$l_wds"
+elif [ "$MODE" = "sta" ]; then
+	IWDEV=$(iw dev | awk '/Interface/ {ifname=$2} /type managed/ {print ifname; exit}')
+	NAME="AL-emprator-WDS-STA"
+	SYSFS="$l_wds"
+fi
+
+if [ -n "$IWDEV" ] && [ -n "$SYSFS" ]; then
+	uci -q batch <<-EOF
+		set system.$LED_SECTION=led
+		set system.$LED_SECTION.name='$NAME'
+		set system.$LED_SECTION.sysfs='$SYSFS'
+		set system.$LED_SECTION.trigger='netdev'
+		set system.$LED_SECTION.dev='$IWDEV'
+		set system.$LED_SECTION.mode='link'
+		commit system
+	EOF
+	/etc/init.d/led reload 2>/dev/null
+fi

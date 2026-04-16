@@ -1,0 +1,17 @@
+#!/bin/sh
+# AL-emprator LED button handler
+# On button release: turn off all LEDs
+# On button press:   restart LED service
+
+case "$ACTION" in
+	released)
+		for led in /sys/class/leds/*; do
+			[ -d "$led" ] || continue
+			echo "none" > "$led/trigger"
+			echo 0 > "$led/brightness"
+		done
+		;;
+	pressed)
+		/etc/init.d/led restart
+		;;
+esac
