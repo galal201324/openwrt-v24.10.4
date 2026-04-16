@@ -79,8 +79,48 @@ return view.extend({
 
 		o = s.option(form.ListValue, 'AlwSettings', _('Settings Mode'));
 		o.value('AL', _('AL-emprator (Default)'));
+		o.value('ALM', _('AL-emprator Mesh'));
 		o.value('manual', _('Manual'));
 		o.default = 'AL';
+
+		o = s.option(form.Value, 'MWS', _('Mesh ID'));
+		o.depends('AlwSettings', 'ALM');
+		o.datatype = 'maxlength(32)';
+		o.placeholder = 'ALW_KT_MESH';
+		o.default = 'ALW_KT_MESH';
+		o.rmempty = false;
+		o.cfgvalue = function(section_id) {
+			return uci.get('setup', section_id, 'MWS') || uci.get('wireless', 'wifinet2', 'mesh_id');
+		};
+		o.write = function(section_id, value) {
+			uci.set('setup', section_id, 'MWS', value);
+		};
+
+		o = s.option(form.ListValue, 'SH', _('Mesh Security'));
+		o.depends('AlwSettings', 'ALM');
+		o.value('SP', _('Password Protected'));
+		o.value('NO', _('Open Mesh'));
+		o.default = 'SP';
+		o.cfgvalue = function(section_id) {
+			var encryption = uci.get('wireless', 'wifinet2', 'encryption');
+
+			return uci.get('setup', section_id, 'SH') || (encryption === 'none' ? 'NO' : 'SP');
+		};
+
+		o = s.option(form.Value, 'MK', _('Mesh Password'));
+		o.depends({ AlwSettings: 'ALM', SH: 'SP' });
+		o.datatype = 'wpakey';
+		o.password = true;
+		o.placeholder = 'absd_ALW_KT_MESH';
+		o.cfgvalue = function(section_id) {
+			return uci.get('setup', section_id, 'MK') || uci.get('wireless', 'wifinet2', 'key');
+		};
+		o.write = function(section_id, value) {
+			if (value == null || value === '')
+				uci.unset('setup', section_id, 'MK');
+			else
+				uci.set('setup', section_id, 'MK', value);
+		};
 
 		/* ── Section: Quick Network (direct UCI on network config) ── */
 		var net = new form.Map('network', _('Network Configuration'));

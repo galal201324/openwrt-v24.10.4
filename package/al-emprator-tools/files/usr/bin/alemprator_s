@@ -6,6 +6,8 @@
 
 uci -q get setup.default >/dev/null 2>&1 || exit 0
 
+IFACE_NAME="wifinet2"
+
 SETTINGS=$(uci -q get setup.default.AlwSettings)
 [ "$SETTINGS" = "manual" ] && exit 0
 
@@ -24,9 +26,15 @@ R0H=$(uci -q get setup.default.R0H)
 R1H=$(uci -q get setup.default.R1H)
 R0C=$(uci -q get setup.default.R0C)
 R1C=$(uci -q get setup.default.R1C)
+MWS=$(uci -q get setup.default.MWS)
+MK=$(uci -q get setup.default.MK)
+SH=$(uci -q get setup.default.SH)
 
 [ -n "$R0K" ] || R0K="$K"
 [ -n "$R1K" ] || R1K="$K"
+[ -n "$MWS" ] || MWS="ALW_KT_MESH"
+[ -n "$SH" ] || SH="SP"
+[ "$SH" = "SP" ] && [ -z "$MK" ] && MK="absd_$MWS"
 
 NETWORK_CHANGED=0
 WIRELESS_CHANGED=0
@@ -45,24 +53,86 @@ apply() {
 	fi
 }
 
-apply wireless wireless.default_radio0.ssid       "$WS"
-apply wireless wireless.default_radio1.ssid       "$WS5"
-apply wireless wireless.default_radio0.key        "$R0K"
-apply wireless wireless.default_radio1.key        "$R1K"
-apply wireless wireless.default_radio0.encryption "$R0E"
-apply wireless wireless.default_radio1.encryption "$R1E"
-apply wireless wireless.default_radio0.disabled   "$R0D"
-apply wireless wireless.default_radio1.disabled   "$R1D"
-apply network  network.lan.ipaddr                 "$LIP"
-apply network  network.lan.netmask                "$LNM"
-apply wireless wireless.radio0.htmode             "$R0H"
-apply wireless wireless.radio1.htmode             "$R1H"
-apply wireless wireless.radio0.channel            "$R0C"
-apply wireless wireless.radio1.channel            "$R1C"
+remove_option() {
+	# $1 = config name, $2 = uci path
+	uci -q get "$2" >/dev/null 2>&1 || return 0
+	uci -q delete "$2"
+	if [ "$1" = "wireless" ]; then
+		WIRELESS_CHANGED=1
+	else
+		NETWORK_CHANGED=1
+	fi
+}
+
+remove_mesh_iface() {
+	[ "$(uci -q get wireless.$IFACE_NAME.mode)" = "mesh" ] || return 0
+	uci -q delete wireless.$IFACE_NAME
+	WIRELESS_CHANGED=1
+}
+
+mesh_device() {
+	uci -q get wireless.radio1 >/dev/null 2>&1 && {
+		echo "radio1"
+		return 0
+	}
+
+	echo "radio0"
+}
+
+apply_standard_mode() {
+	remove_mesh_iface
+	apply wireless wireless.default_radio0.ssid       "$WS"
+	apply wireless wireless.default_radio1.ssid       "$WS5"
+	apply wireless wireless.default_radio0.key        "$R0K"
+	apply wireless wireless.default_radio1.key        "$R1K"
+	apply wireless wireless.default_radio0.encryption "$R0E"
+	apply wireless wireless.default_radio1.encryption "$R1E"
+	apply wireless wireless.default_radio0.disabled   "$R0D"
+	apply wireless wireless.default_radio1.disabled   "$R1D"
+	apply network  network.lan.ipaddr                 "$LIP"
+	apply network  network.lan.netmask                "$LNM"
+	apply wireless wireless.radio0.htmode             "$R0H"
+	apply wireless wireless.radio1.htmode             "$R1H"
+	apply wireless wireless.radio0.channel            "$R0C"
+	apply wireless wireless.radio1.channel            "$R1C"
+}
+
+apply_mesh_mode() {
+	uci -q get wireless.$IFACE_NAME >/dev/null 2>&1 || {
+		uci -q set wireless.$IFACE_NAME=wifi-iface
+		WIRELESS_CHANGED=1
+	}
+
+	apply wireless wireless.$IFACE_NAME.device    "$(mesh_device)"
+	apply wireless wireless.$IFACE_NAME.network   "lan"
+	apply wireless wireless.$IFACE_NAME.mode      "mesh"
+	apply wireless wireless.$IFACE_NAME.mesh_id   "$MWS"
+	apply wireless wireless.$IFACE_NAME.disabled  "0"
+
+	if [ "$SH" = "NO" ]; then
+		apply wireless wireless.$IFACE_NAME.encryption "none"
+		remove_option wireless wireless.$IFACE_NAME.key
+	else
+		apply wireless wireless.$IFACE_NAME.encryption "sae"
+		apply wireless wireless.$IFACE_NAME.key        "$MK"
+	fi
+
+	remove_option wireless wireless.$IFACE_NAME.ssid
+}
+
+case "$SETTINGS" in
+ALM)
+	apply_mesh_mode
+	;;
+*)
+	apply_standard_mode
+	;;
+esac
 
 [ "$WIRELESS_CHANGED" = "1" ] && uci commit wireless
 [ "$NETWORK_CHANGED" = "1" ] && uci commit network
 
 if [ "$WIRELESS_CHANGED" = "1" ]; then
 	wifi reload 2>/dev/null
+	command -v alemprator_m_l >/dev/null 2>&1 && alemprator_m_l
 fi

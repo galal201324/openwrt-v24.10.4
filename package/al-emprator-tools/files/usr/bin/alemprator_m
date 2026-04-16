@@ -21,7 +21,9 @@ case "$BUTTON" in
 				uci commit wireless
 				ubus call network.interface.wlan reload 2>/dev/null
 				wifi up
+				command -v alemprator_m_l >/dev/null 2>&1 && alemprator_m_l
 			else
+				uci -q get setup.default >/dev/null 2>&1 || uci -q set setup.default=setup
 				uci -q batch <<-EOF
 					set setup.default.AlwSettings='ALM'
 					set setup.default.MWS='$MESH_ID'
@@ -30,6 +32,7 @@ case "$BUTTON" in
 					commit setup
 				EOF
 				/etc/init.d/setup reload 2>/dev/null
+				command -v alemprator_m_l >/dev/null 2>&1 && alemprator_m_l
 			fi
 		fi
 		;;

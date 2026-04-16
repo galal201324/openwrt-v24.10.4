@@ -22,8 +22,19 @@ r0h=$(uci -q get wireless.radio0.htmode)
 r1h=$(uci -q get wireless.radio1.htmode)
 r0c=$(uci -q get wireless.radio0.channel)
 r1c=$(uci -q get wireless.radio1.channel)
+mesh_mode=$(uci -q get wireless.wifinet2.mode)
+mesh_id=$(uci -q get wireless.wifinet2.mesh_id)
+mesh_key=$(uci -q get wireless.wifinet2.key)
+mesh_enc=$(uci -q get wireless.wifinet2.encryption)
+current_mode=$(uci -q get setup.default.AlwSettings)
 
-uci -q set setup.default.AlwSettings='AL'
+if [ "$current_mode" = "manual" ]; then
+	uci -q set setup.default.AlwSettings='manual'
+elif [ "$mesh_mode" = "mesh" ]; then
+	uci -q set setup.default.AlwSettings='ALM'
+else
+	uci -q set setup.default.AlwSettings='AL'
+fi
 [ -n "$lip" ] && uci -q set setup.default.lan_ipaddr="$lip"
 [ -n "$lnm" ] && uci -q set setup.default.lan_netmask="$lnm"
 [ -n "$ws" ]  && uci -q set setup.default.WS="$ws"
@@ -39,5 +50,18 @@ uci -q set setup.default.AlwSettings='AL'
 [ -n "$r1h" ] && uci -q set setup.default.R1H="$r1h"
 [ -n "$r0c" ] && uci -q set setup.default.R0C="$r0c"
 [ -n "$r1c" ] && uci -q set setup.default.R1C="$r1c"
+[ "$mesh_mode" = "mesh" ] && [ -n "$mesh_id" ] && uci -q set setup.default.MWS="$mesh_id"
+[ "$mesh_mode" = "mesh" ] && [ -n "$mesh_key" ] && uci -q set setup.default.MK="$mesh_key"
+if [ "$mesh_mode" = "mesh" ]; then
+	if [ "$mesh_enc" = "none" ]; then
+		uci -q set setup.default.SH='NO'
+	else
+		uci -q set setup.default.SH='SP'
+	fi
+else
+	uci -q delete setup.default.MWS
+	uci -q delete setup.default.MK
+	uci -q delete setup.default.SH
+fi
 
 uci commit setup
