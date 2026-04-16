@@ -18,7 +18,7 @@ start() {
 }
 
 reload() {
-	start
+	reload_service
 }
 
 reload_service() {

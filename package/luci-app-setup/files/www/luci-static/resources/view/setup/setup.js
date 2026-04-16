@@ -194,6 +194,7 @@ return view.extend({
 	},
 
 	syncSetupCache: function() {
+		/* Legacy setup.default keys are kept for compatibility with existing alemprator_* helpers. */
 		setSetupValue('lan_ipaddr', uci.get('network', 'lan', 'ipaddr'));
 		setSetupValue('lan_netmask', uci.get('network', 'lan', 'netmask'));
 		setSetupValue('WS', getWirelessValue('default_radio0', 'ssid'));
