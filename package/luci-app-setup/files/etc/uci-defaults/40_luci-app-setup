@@ -1,3 +1,5 @@
+#!/bin/sh
+
 touch /etc/config/setup
 touch /etc/config/wireless
 
