@@ -39,7 +39,7 @@ return view.extend({
 		o.rmempty = false;
 
 		o = s.option(form.ListValue, 'AlwSettings', _('Settings Mode'));
-		o.value('AL', _('ALemprator (Default)'));
+		o.value('AL', _('AL-emprator (Default)'));
 		o.value('manual', _('Manual'));
 		o.default = 'AL';
 

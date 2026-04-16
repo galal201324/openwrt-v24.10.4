@@ -1,0 +1,36 @@
+#!/bin/sh
+# AL-emprator WPS / Mesh button handler
+# Toggles the mesh wireless interface on WPS button press,
+# or creates an initial mesh configuration if the interface
+# does not yet exist.
+
+MESH_ID="ALW_KT_MESH"
+IFACE_NAME="wifinet2"
+
+case "$BUTTON" in
+	wps|WPS)
+		if [ "$ACTION" = "pressed" ]; then
+			if uci -q get wireless."$IFACE_NAME" >/dev/null 2>&1; then
+				STATUS=$(uci -q get wireless."$IFACE_NAME".disabled)
+				: "${STATUS:=0}"
+				if [ "$STATUS" = "0" ]; then
+					uci set wireless."$IFACE_NAME".disabled='1'
+				else
+					uci set wireless."$IFACE_NAME".disabled='0'
+				fi
+				uci commit wireless
+				ubus call network.interface.wlan reload 2>/dev/null
+				wifi up
+			else
+				uci -q batch <<-EOF
+					set setup.default.AlwSettings='ALM'
+					set setup.default.MWS='$MESH_ID'
+					set setup.default.SH='SP'
+					set setup.default.MK='absd_$MESH_ID'
+					commit setup
+				EOF
+				/etc/init.d/setup reload 2>/dev/null
+			fi
+		fi
+		;;
+esac

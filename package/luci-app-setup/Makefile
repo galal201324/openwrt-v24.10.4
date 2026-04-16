@@ -13,8 +13,8 @@ define Package/luci-app-setup
   SECTION:=luci
   CATEGORY:=LuCI
   SUBMENU:=3. Applications
-  TITLE:=LuCI Quick Setup (ALemprator)
-  DEPENDS:=+luci-base +rpcd
+  TITLE:=LuCI Quick Setup (AL-emprator)
+  DEPENDS:=+luci-base +rpcd +al-emprator-tools
 endef
 
 define Package/luci-app-setup/description
