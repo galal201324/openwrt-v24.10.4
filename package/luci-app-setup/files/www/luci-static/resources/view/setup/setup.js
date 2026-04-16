@@ -6,7 +6,7 @@
 'require dom';
 
 function setSetupValue(option, value) {
-	if (value == null || value === '')
+	if (value === null || value === undefined || value === '')
 		uci.unset('setup', 'default', option);
 	else
 		uci.set('setup', 'default', option, value);
@@ -200,7 +200,6 @@ return view.extend({
 		setSetupValue('WS5', getWirelessValue('default_radio1', 'ssid'));
 		setSetupValue('R0K', getWirelessValue('default_radio0', 'key'));
 		setSetupValue('R1K', getWirelessValue('default_radio1', 'key'));
-		setSetupValue('K', getWirelessValue('default_radio0', 'key'));
 		setSetupValue('R0E', getWirelessValue('default_radio0', 'encryption'));
 		setSetupValue('R1E', getWirelessValue('default_radio1', 'encryption'));
 		setSetupValue('R0D', getWirelessValue('default_radio0', 'disabled'));
