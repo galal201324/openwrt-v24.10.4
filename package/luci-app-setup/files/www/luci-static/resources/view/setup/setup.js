@@ -5,15 +5,12 @@
 'require ui';
 'require dom';
 
+/* keepEmpty is reserved for cache values that must preserve an explicit empty string; otherwise empty values clear the cached UCI option. */
 function setSetupValue(option, value, keepEmpty) {
 	if (value === null || value === undefined || (!keepEmpty && value === ''))
 		uci.unset('setup', 'default', option);
 	else
 		uci.set('setup', 'default', option, value);
-}
-
-function getWirelessValue(section, option) {
-	return uci.get('wireless', section, option);
 }
 
 return view.extend({
@@ -194,17 +191,19 @@ return view.extend({
 	},
 
 	syncSetupCache: function() {
-		/* Legacy setup.default keys are kept for compatibility with existing alemprator_* helpers. */
+		/* Legacy setup.default keys are kept for alemprator_s/alemprator_f/alemprator_c compatibility:
+		 * WS/WS5=SSIDs, R0K/R1K=keys, R0E/R1E=encryption, R0D/R1D=disabled, R0H/R1H=htmode, R0C/R1C=channel.
+		 */
 		setSetupValue('lan_ipaddr', uci.get('network', 'lan', 'ipaddr'));
 		setSetupValue('lan_netmask', uci.get('network', 'lan', 'netmask'));
-		setSetupValue('WS', getWirelessValue('default_radio0', 'ssid'));
-		setSetupValue('WS5', getWirelessValue('default_radio1', 'ssid'));
-		setSetupValue('R0K', getWirelessValue('default_radio0', 'key'));
-		setSetupValue('R1K', getWirelessValue('default_radio1', 'key'));
-		setSetupValue('R0E', getWirelessValue('default_radio0', 'encryption'));
-		setSetupValue('R1E', getWirelessValue('default_radio1', 'encryption'));
-		setSetupValue('R0D', getWirelessValue('default_radio0', 'disabled'));
-		setSetupValue('R1D', getWirelessValue('default_radio1', 'disabled'));
+		setSetupValue('WS', uci.get('wireless', 'default_radio0', 'ssid'));
+		setSetupValue('WS5', uci.get('wireless', 'default_radio1', 'ssid'));
+		setSetupValue('R0K', uci.get('wireless', 'default_radio0', 'key'));
+		setSetupValue('R1K', uci.get('wireless', 'default_radio1', 'key'));
+		setSetupValue('R0E', uci.get('wireless', 'default_radio0', 'encryption'));
+		setSetupValue('R1E', uci.get('wireless', 'default_radio1', 'encryption'));
+		setSetupValue('R0D', uci.get('wireless', 'default_radio0', 'disabled'));
+		setSetupValue('R1D', uci.get('wireless', 'default_radio1', 'disabled'));
 		setSetupValue('R0H', uci.get('wireless', 'radio0', 'htmode'));
 		setSetupValue('R1H', uci.get('wireless', 'radio1', 'htmode'));
 		setSetupValue('R0C', uci.get('wireless', 'radio0', 'channel'));
