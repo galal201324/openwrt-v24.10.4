@@ -6,7 +6,7 @@ repo_root="$(cd -- "${script_dir}/.." && pwd)"
 git_dir="$(git -C "${repo_root}" rev-parse --git-dir 2>/dev/null)" || exit 0
 lock_dir="${git_dir}/autosync.lock"
 log_file="${git_dir}/autosync.log"
-autocommit="${AUTOSYNC_AUTOCOMMIT:-1}"
+autocommit="${AUTOSYNC_AUTOCOMMIT:-0}"
 
 log() {
     printf '%s %s\n' "$(date '+%F %T')" "$*" >> "${log_file}"
@@ -50,20 +50,6 @@ if [[ -n "$(git -C "${repo_root}" ls-files --others --exclude-standard)" ]]; the
     working_tree_dirty=1
 fi
 
-if [[ "${autocommit}" == "1" && "${working_tree_dirty}" == "1" ]]; then
-    git -C "${repo_root}" add -A
-    if ! git -C "${repo_root}" diff --cached --quiet; then
-        timestamp="$(date '+%F %T')"
-        if git -C "${repo_root}" commit -m "chore: auto-sync ${timestamp}" >/dev/null 2>&1; then
-            log "auto-commit created on ${branch}"
-            working_tree_dirty=0
-        else
-            log "auto-commit failed on ${branch}"
-            exit 1
-        fi
-    fi
-fi
-
 if ! git -C "${repo_root}" pull --rebase --autostash --quiet; then
     log "pull --rebase failed on ${branch}"
     exit 1
@@ -71,6 +57,24 @@ fi
 
 if GIT_TERMINAL_PROMPT=0 git -C "${repo_root}" push --dry-run --porcelain >/dev/null 2>&1; then
     can_push=1
+fi
+
+if [[ "${autocommit}" == "1" && "${working_tree_dirty}" == "1" ]]; then
+    if [[ "${can_push}" != "1" ]]; then
+        log "skip auto-commit on ${branch}: push unavailable"
+    else
+        git -C "${repo_root}" add -A
+        if ! git -C "${repo_root}" diff --cached --quiet; then
+            timestamp="$(date '+%F %T')"
+            if git -C "${repo_root}" commit -m "chore: auto-sync ${timestamp}" >/dev/null 2>&1; then
+                log "auto-commit created on ${branch}"
+                working_tree_dirty=0
+            else
+                log "auto-commit failed on ${branch}"
+                exit 1
+            fi
+        fi
+    fi
 fi
 
 ahead_count="$(git -C "${repo_root}" rev-list --count '@{u}..HEAD')"
