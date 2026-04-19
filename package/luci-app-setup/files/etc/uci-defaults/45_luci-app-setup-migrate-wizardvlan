@@ -1,0 +1,42 @@
+#!/bin/sh
+
+changed=0
+
+if [ -n "$(uci -q get network.wizardvlan)" ]; then
+	uci -q set network.wizardvlan.proto='none'
+	uci -q unset network.wizardvlan.ipaddr
+	uci -q unset network.wizardvlan.netmask
+	uci -q unset network.wizardvlan.gateway
+	uci -q unset network.wizardvlan.broadcast
+	uci -q unset network.wizardvlan.delegate
+	uci -q unset network.wizardvlan.dns
+	uci -q unset network.wizardvlan.defaultroute
+	uci -q unset network.wizardvlan.ip6addr
+	uci -q unset network.wizardvlan.ip6gw
+	uci -q unset network.wizardvlan.ip6assign
+	uci -q unset network.wizardvlan.ip6hint
+	uci -q unset network.wizardvlan.ip6class
+	changed=1
+fi
+
+if [ -n "$(uci -q get dhcp.wizardvlan)" ]; then
+	uci -q delete dhcp.wizardvlan
+	changed=1
+fi
+
+for zone in $(uci show firewall 2>/dev/null | sed -n "s/^firewall\.\([^.=]*\)=zone$/\1/p"); do
+	[ "$(uci -q get firewall.$zone.name)" = 'lan' ] || continue
+	uci -q del_list firewall.$zone.network='wizardvlan'
+	changed=1
+done
+
+if [ "$changed" = 1 ]; then
+	uci -q commit network
+	uci -q commit dhcp
+	uci -q commit firewall
+	/etc/init.d/network reload >/dev/null 2>&1 || true
+	/etc/init.d/dnsmasq restart >/dev/null 2>&1 || true
+	/etc/init.d/firewall reload >/dev/null 2>&1 || true
+fi
+
+exit 0

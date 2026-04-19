@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-setup
 PKG_VERSION:=1.0
-PKG_RELEASE:=4
+PKG_RELEASE:=47
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 PKGARCH:=all
 PKG_LICENSE:=GPL-3.0-only
@@ -39,6 +39,7 @@ define Package/luci-app-setup/install
 	$(INSTALL_BIN) ./files/etc/init.d/setup $(1)/etc/init.d/
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/etc/uci-defaults/40_luci-app-setup $(1)/etc/uci-defaults/
+	$(INSTALL_BIN) ./files/etc/uci-defaults/45_luci-app-setup-migrate-wizardvlan $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/etc/uci-defaults/alemprator_c $(1)/etc/uci-defaults/
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
 	$(INSTALL_DATA) ./files/usr/share/luci/menu.d/luci-app-setup.json $(1)/usr/share/luci/menu.d/

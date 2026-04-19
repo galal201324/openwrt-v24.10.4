@@ -1998,7 +1998,7 @@ define Device/kt_km14-102h
   IMAGE_SIZE := 129280k
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size
-  DEVICE_PACKAGES += kmod-mt7915-firmware wpad-basic-mbedtls
+  DEVICE_PACKAGES += kmod-mt7915-firmware wpad-basic-mbedtls luci-app-setup
 endef
 TARGET_DEVICES += kt_km14-102h
 

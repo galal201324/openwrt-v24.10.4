@@ -2,7 +2,7 @@
 	"luci-app-setup": {
 		"description": "Grant UCI and status access for luci-app-setup",
 		"read": {
-			"uci": [ "network", "setup", "wireless" ],
+			"uci": [ "network", "setup", "watchcat", "wireless" ],
 			"ubus": {
 				"system": [ "board" ],
 				"network.interface.lan": [ "status" ],
@@ -10,7 +10,10 @@
 			}
 		},
 		"write": {
-			"uci": [ "network", "setup", "wireless" ]
+			"uci": [ "network", "setup", "watchcat", "wireless" ],
+			"ubus": {
+				"luci": [ "setPassword" ]
+			}
 		}
 	}
 }

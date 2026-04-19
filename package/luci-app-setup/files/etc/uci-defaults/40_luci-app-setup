@@ -5,15 +5,31 @@ touch /etc/config/wireless
 
 lan_ipaddr="$(uci -q get network.lan.ipaddr)"
 lan_netmask="$(uci -q get network.lan.netmask)"
+wifi_ssid="$(uci -q get wireless.@wifi-iface[0].ssid)"
+wifi_key="$(uci -q get wireless.@wifi-iface[0].key)"
 
 [ -n "$lan_ipaddr" ] || lan_ipaddr="192.168.1.1"
 [ -n "$lan_netmask" ] || lan_netmask="255.255.255.0"
+[ -n "$wifi_ssid" ] || wifi_ssid="OpenWrt"
 
 uci -q batch <<EOF >/dev/null
 	set setup.default=setup
 	set setup.default.AlwSettings='AL'
 	set setup.default.lan_ipaddr='$lan_ipaddr'
 	set setup.default.lan_netmask='$lan_netmask'
+	set setup.default.mode='ap'
+	set setup.default.wifi_ssid='$wifi_ssid'
+	set setup.default.wifi_key='$wifi_key'
+	set setup.default.uplink_ssid=''
+	set setup.default.uplink_key=''
+	set setup.default.uplink_band='2g'
+	set setup.default.mesh_id=''
+	set setup.default.mesh_key=''
+	set setup.default.mesh_band='2g'
+	set setup.default.is_vlan='0'
+	set setup.default.vlan_id='10'
+	set setup.default.channel_2g='auto'
+	set setup.default.channel_5g='auto'
 	set setup.default.reset_button_disabled='0'
 	set setup.default.reset_hold_seconds='5'
 	set setup.default.wps_button_disabled='0'

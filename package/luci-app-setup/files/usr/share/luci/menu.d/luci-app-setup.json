@@ -1,4 +1,12 @@
 {
+	"admin/applications": {
+		"title": "Applications",
+		"order": 5,
+		"action": {
+			"type": "firstchild",
+			"recurse": true
+		}
+	},
 	"admin/applications/alemprator": {
 		"title": "ALemprator Setup",
 		"order": 10,
